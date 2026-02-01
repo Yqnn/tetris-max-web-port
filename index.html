@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Max</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="game-wrapper">
+            <!-- Single canvas for the entire game window (like original) -->
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="buttons-row">
+                <button id="startBtn" class="game-btn primary">Begin Game</button>
+                <button id="pauseBtn" class="game-btn" disabled>Pause</button>
+                <button id="soundBtn" class="game-btn">Sound Effects: ON</button>
+                <button id="musicBtn" class="game-btn">Music: ON</button>
+                <button id="highScoresBtn" class="game-btn">High Scores</button>
+                <button id="aboutBtn" class="game-btn">About...</button>
+            </div>
+            <div class="selects-row">
+                <div class="settings-section">
+                    <label for="levelSelect">Starting Level:</label>
+                    <div class="select-wrap">
+                    <select id="levelSelect">
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                        <option value="3">Level 3</option>
+                        <option value="4">Level 4</option>
+                        <option value="5">Level 5</option>
+                        <option value="6">Level 6</option>
+                        <option value="7">Level 7</option>
+                        <option value="8">Level 8</option>
+                        <option value="9">Level 9</option>
+                        <option value="10">Level 10</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <label for="musicSelect">Music:</label>
+                    <div class="select-wrap">
+                    <select id="musicSelect">
+                        <option value="peter_wagner">Peter Wagner</option>
+                        <option value="animal_instinct">Animal Instinct</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <label for="piecesSelect">Pieces:</label>
+                    <div class="select-wrap">
+                    <select id="piecesSelect">
+                        <option value="default">Default</option>
+                        <option value="diamond">Diamond</option>
+                        <option value="spherical">Spherical</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <label for="backgroundSelect">Backgrounds:</label>
+                    <div class="select-wrap">
+                    <select id="backgroundSelect">
+                        <option value="default">Default</option>
+                        <option value="pot_luck">Pot Luck</option>
+                    </select>
+                    </div>
+                </div>
+            </div>
+            <div class="controls-help">
+                <h3>Controls:</h3>
+                <table>
+                    <tr><td><kbd>←</kbd> / <kbd>J</kbd></td><td>Move Left</td></tr>
+                    <tr><td><kbd>→</kbd> / <kbd>L</kbd></td><td>Move Right</td></tr>
+                    <tr><td><kbd>↓</kbd> / <kbd>Space</kbd></td><td>Hard Drop</td></tr>
+                    <tr><td><kbd>↑</kbd> / <kbd>I</kbd></td><td>Rotate CW</td></tr>
+                    <tr><td><kbd>K</kbd></td><td>Rotate CCW</td></tr>
+                    <tr><td><kbd>M</kbd></td><td>Soft Drop</td></tr>
+                    <tr><td><kbd>P</kbd></td><td>Pause</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- High score name entry modal (same look as controls-panel) -->
+    <div id="highScoreModalOverlay" class="highscore-modal-overlay" hidden>
+        <div id="highScoreModal" class="highscore-modal controls-panel">
+            <div class="highscore-modal-content">
+                <div class="highscore-modal-tetromino" aria-hidden="true">
+                    <span class="block"></span><span class="block"></span><span class="block"></span><span class="block"></span>
+                </div>
+                <div class="highscore-modal-text">
+                    <p>Congratulations! You've set a new high score! Enter your name:</p>
+                    <input type="text" id="highScoreNameInput" class="highscore-modal-input" maxlength="20" value="Player" placeholder="Player" />
+                    <button type="button" id="highScoreModalOk" class="game-btn primary">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
