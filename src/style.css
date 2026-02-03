@@ -1,0 +1,409 @@
+/* Tetris Max - Classic Mac Style (2x scaled from original 500x330) */
+
+@font-face {
+  font-family: 'Charcoal';
+  src: url('assets/charcoal-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Charcoal', Geneva, 'Lucida Grande', Helvetica, Arial, sans-serif;
+  background: #000000;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  color: #fff;
+}
+
+/* Main container - horizontal layout */
+.main-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+
+/* Game canvas wrapper */
+.game-wrapper {
+  flex-shrink: 0;
+}
+
+#gameCanvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Controls panel on the right */
+.controls-panel {
+  background: #FFFFFF;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 180px;
+  position: relative;
+  
+  /* Mac OS 9 3D beveled border - same as high score popup */
+  /* Outer black border */
+  border: 1px solid #000000;
+  /* Drop shadow */
+  box-shadow: 1px 1px 0 #000000;
+  
+  /* Inner 3D effect using pseudo-elements */
+}
+
+.controls-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  /* Top-left highlight: white inner, light gray outer */
+  border-top: 1px solid #BBBBBB;
+  border-left: 1px solid #BBBBBB;
+  border-right: 1px solid #555555;
+  border-bottom: 1px solid #555555;
+}
+
+.controls-panel::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  pointer-events: none;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #999999;
+  border-bottom: 1px solid #999999;
+}
+
+/* First row: buttons */
+.buttons-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+  margin: -4px;
+}
+
+/* Second row: select menus */
+.selects-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #999999;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Mac OS 9 style button */
+.game-btn {
+  padding: 3px 20px;
+  font-size: 12px;
+  font-weight: normal;
+  cursor: pointer;
+  background: #DDDDDD;
+  color: #000000;
+  font-family: "Charcoal", "Chicago", Geneva, Helvetica, Arial, sans-serif;
+  border-radius: 5px;
+  position: relative;
+  width: 100%;
+  text-align: center;
+  
+  /* Mac OS 9 3D border effect (inside to outside) */
+  /* top/left: white, #dddddd, black */
+  /* right/bottom: #aaaaaa, #777777, black */
+  border: 1px solid #000000;
+  box-shadow: 
+      inset 1px 1px 0 #DDDDDD,
+      inset -1px -1px 0 #777777,
+      inset 2px 2px 0 #FFFFFF,
+      inset -2px -2px 0 #AAAAAA;
+}
+
+
+.game-btn:active:not(:disabled) {
+  background: #666666;
+  color: #FFFFFF;
+  box-shadow: 
+      inset -1px -1px 0 #888888,
+      inset 1px 1px 0 #444444,
+      inset -2px -2px 0 #777777,
+      inset 2px 2px 0 #555555;
+}
+
+.game-btn:disabled {
+  background: #dddddd;
+  color: #888888;
+  cursor: default;
+  border: 1px solid #888888;
+  box-shadow: none;
+}
+
+/* Mac OS 9 default/primary button style (thick rounded black border with 3D ring) */
+.game-btn.primary:not(:disabled) {
+  position: relative;
+  outline: none;
+}
+
+/* Outer ring layer 1: #000000 */
+.game-btn.primary:not(:disabled)::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 9px;
+  border: 1px solid #000000;
+  pointer-events: none;
+}
+
+/* Inner ring layers */
+.game-btn.primary:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 8px;
+  pointer-events: none;
+  /* Layer 2: top/left #DDDDDD, right/bottom #777777 */
+  border-top: 1px solid #DDDDDD;
+  border-left: 1px solid #DDDDDD;
+  border-right: 1px solid #777777;
+  border-bottom: 1px solid #777777;
+  /* Layer 3: inner #AAAAAA ring */
+  box-shadow: inset 0 0 0 1px #AAAAAA;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-section label {
+  font-size: 11px;
+  color: #000000;
+  font-family: "Charcoal", "Chicago", Geneva, Helvetica, Arial, sans-serif;
+}
+
+/* Mac OS 9 style dropdown/select */
+.settings-section .select-wrap {
+  position: relative;
+  display: block;
+}
+
+.settings-section select {
+  padding: 4px 24px 4px 6px;
+  font-size: 12px;
+  background: #DDDDDD;
+  color: #000000;
+  cursor: pointer;
+  font-family: "Charcoal", "Chicago", Geneva, Helvetica, Arial, sans-serif;
+  border-radius: 5px;
+  border: 1px solid #000000;
+  width: 100%;
+  box-shadow: 
+      inset 1px 1px 0 #DDDDDD,
+      inset -1px -1px 0 #777777,
+      inset 2px 2px 0 #FFFFFF,
+      inset -2px -2px 0 #AAAAAA;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.settings-section .select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M8 13l4-4H4l4 4M8 3 4 7h8L8 3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  pointer-events: none;
+  border-radius: 3px;
+  /* Left border only via box-shadow (inner to outer): white, #dddddd, #aaaaaa */
+  box-shadow:
+      -1px 0 0 0 white,
+      -2px 0 0 0 #dddddd,
+      -3px 0 0 0 #aaaaaa;
+}
+
+.settings-section select:focus {
+  outline: none;
+}
+
+.settings-section select:disabled {
+  background-color: #dddddd;
+  color: #888888;
+  cursor: not-allowed;
+  border: 1px solid #888888;
+  box-shadow: none;
+}
+
+.settings-section .select-wrap:has(select:disabled)::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 16 16'%3E%3Cpath fill='%23888888' d='M8 13l4-4H4l4 4M8 3 4 7h8L8 3'/%3E%3C/svg%3E");
+  box-shadow:
+      -1px 0 0 0 #dddddd,
+      -2px 0 0 0 #dddddd,
+      -3px 0 0 0 #aaaaaa;
+}
+
+.controls-help {
+  border-top: 1px solid #999999;
+  padding-top: 10px;
+  margin-top: 5px;
+}
+
+.controls-help h3 {
+  font-size: 11px;
+  color: #000000;
+  margin-bottom: 0;
+  font-weight: normal;
+}
+
+.controls-help table {
+  font-size: 11px;
+  width: 100%;
+}
+
+.controls-help td {
+  padding: 2px 4px;
+  color: #333333;
+}
+
+.controls-help td:first-child {
+  color: #000000;
+  white-space: nowrap;
+}
+
+kbd {
+  display: inline-block;
+  background: #EEEEEE;
+  border: 1px solid #000000;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: Monaco, monospace;
+  font-size: 10px;
+  min-width: 18px;
+  text-align: center;
+  color: #000000;
+  box-shadow: 
+      inset 1px 1px 0 #FFFFFF,
+      inset -1px -1px 0 #999999;
+}
+
+/* High score name modal - reuses controls-panel look */
+.highscore-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  font-family: 'Charcoal', Geneva, 'Lucida Grande', Helvetica, Arial, sans-serif;
+}
+
+.highscore-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.highscore-modal.controls-panel {
+  min-width: 320px;
+  max-width: 90vw;
+}
+
+.highscore-modal-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 300px;
+}
+
+/* T-shaped tetromino (4 blocks) - uses piece sprite, T is index 6 (7th block) */
+.highscore-modal-tetromino {
+  display: grid;
+  grid-template-columns: 16px 16px;
+  grid-template-rows: 16px 16px 16px;
+  width: 32px;
+  height: 48px;
+  flex-shrink: 0;
+  gap:0;
+}
+
+.highscore-modal-tetromino .block {
+  display: block;
+  width: 16px;
+  height: 16px;
+  /* Piece texture: 112x16 sprite sheet, T block = 7th (index 6) at -84px when scaled to 98x14 */
+  background-image: var(--highscore-piece-url, url('assets/pieces/default/pieces.png'));
+  background-size: 112px 16px;
+  background-position: -96px 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.highscore-modal-tetromino .block:nth-child(1) { grid-column: 1; grid-row: 1; }
+.highscore-modal-tetromino .block:nth-child(2) { grid-column: 1; grid-row: 2; }
+.highscore-modal-tetromino .block:nth-child(3) { grid-column: 1; grid-row: 3; }
+.highscore-modal-tetromino .block:nth-child(4) { grid-column: 2; grid-row: 2; }
+
+.highscore-modal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.highscore-modal-text p {
+  font-size: 12px;
+  color: #000000;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.highscore-modal-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: 'Charcoal', Geneva, Helvetica, Arial, sans-serif;
+  color: #000000;
+  background: #FFFFFF;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px 1px #999999;
+}
+
+.highscore-modal-text .game-btn {
+  align-self: flex-end;
+  width: auto;
+  min-width: 60px;
+}

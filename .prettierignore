@@ -1,0 +1,5 @@
+node_modules
+docs
+docs
+*.min.js
+package-lock.json
