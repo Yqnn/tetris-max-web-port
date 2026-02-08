@@ -1648,9 +1648,9 @@ async function checkAndRecordHighScore() {
 function formatDate(isoDate: string) {
   try {
     const date = new Date(isoDate);
-    return date.toLocaleDateString('en-US', {
-      month: 'numeric',
-      day: 'numeric',
+    return date.toLocaleDateString('en-UK', {
+      month: '2-digit',
+      day: '2-digit',
       year: '2-digit',
     });
   } catch {
@@ -1773,38 +1773,27 @@ function drawAboutPopup() {
   }
 
   // About image: use loaded image size (reference ~700x410 / 800x480)
-  const IMG_WIDTH =
-    aboutImage && aboutImage.complete && aboutImage.naturalWidth > 0
-      ? aboutImage.naturalWidth
-      : 700;
-  const IMG_HEIGHT =
-    aboutImage && aboutImage.complete && aboutImage.naturalHeight > 0
-      ? aboutImage.naturalHeight
-      : 410;
-  const PADDING = 0; // No padding around image
+  const IMG_WIDTH = 477;
+  const IMG_HEIGHT = 244;
+  const PADDING = 3; // No padding around image
   const BORDER_WIDTH = 3; // Same as high scores (3px bevel)
 
-  let drawW = IMG_WIDTH * SCALE;
-  let drawH = IMG_HEIGHT * SCALE;
-  const maxW = canvas.width - PADDING * 2 - BORDER_WIDTH * 2;
-  const maxH = canvas.height - PADDING * 2 - BORDER_WIDTH * 2;
-  if (drawW > maxW || drawH > maxH) {
-    const scale = Math.min(maxW / drawW, maxH / drawH);
-    drawW *= scale;
-    drawH *= scale;
-  }
-  // About popup at 75% of computed size
-  const ABOUT_SCALE = 0.75;
-  drawW *= ABOUT_SCALE;
-  drawH *= ABOUT_SCALE;
-  const POPUP_WIDTH = drawW + PADDING * 2 + BORDER_WIDTH * 2;
-  const POPUP_HEIGHT = drawH + PADDING * 2 + BORDER_WIDTH * 2;
-  const POPUP_X = (canvas.width - POPUP_WIDTH) / 2;
-  const POPUP_Y = (canvas.height - POPUP_HEIGHT) / 2;
+  const drawW = IMG_WIDTH * SCALE;
+  const drawH = IMG_HEIGHT * SCALE;
+  const POPUP_WIDTH = drawW + PADDING * 2 * SCALE + BORDER_WIDTH * 2 * SCALE;
+  const POPUP_HEIGHT = drawH + PADDING * 2 * SCALE + BORDER_WIDTH * 2 * SCALE;
+  const POPUP_X = SCALE * Math.floor((canvas.width - POPUP_WIDTH) / 2 / SCALE);
+  const POPUP_Y =
+    SCALE * Math.floor((canvas.height - POPUP_HEIGHT) / 2 / SCALE);
 
   // Drop shadow
   ctx.fillStyle = '#000000';
-  ctx.fillRect(POPUP_X + SCALE, POPUP_Y + SCALE, POPUP_WIDTH, POPUP_HEIGHT);
+  ctx.fillRect(
+    POPUP_X + 2 * SCALE,
+    POPUP_Y + 2 * SCALE,
+    POPUP_WIDTH - SCALE,
+    POPUP_HEIGHT - SCALE
+  );
 
   // 3D beveled border (same as high scores: 3 layers, 1px each)
   ctx.fillStyle = '#000000';
@@ -1817,46 +1806,54 @@ function drawAboutPopup() {
 
   for (let i = 0; i < 3; i++) {
     const offset = i;
+
+    // Top edge
     ctx.fillStyle = borderColors.topLeft[i];
     ctx.fillRect(
-      POPUP_X + offset,
-      POPUP_Y + offset,
-      POPUP_WIDTH - offset * 2,
-      1
+      POPUP_X + offset * SCALE,
+      POPUP_Y + offset * SCALE,
+      POPUP_WIDTH - offset * 2 * SCALE,
+      SCALE
     );
+
+    // Left edge
     ctx.fillRect(
-      POPUP_X + offset,
-      POPUP_Y + offset,
-      1,
-      POPUP_HEIGHT - offset * 2
+      POPUP_X + offset * SCALE,
+      POPUP_Y + offset * SCALE,
+      SCALE,
+      POPUP_HEIGHT - offset * 2 * SCALE
     );
+
+    // Bottom edge
     ctx.fillStyle = borderColors.bottomRight[i];
     ctx.fillRect(
-      POPUP_X + offset,
-      POPUP_Y + POPUP_HEIGHT - offset - 1,
-      POPUP_WIDTH - offset * 2,
-      1
+      POPUP_X + offset * SCALE,
+      POPUP_Y + POPUP_HEIGHT - offset * SCALE - SCALE,
+      POPUP_WIDTH - offset * 2 * SCALE,
+      SCALE
     );
+
+    // Right edge
     ctx.fillRect(
-      POPUP_X + POPUP_WIDTH - offset - 1,
-      POPUP_Y + offset,
-      1,
-      POPUP_HEIGHT - offset * 2
+      POPUP_X + POPUP_WIDTH - offset * SCALE - SCALE,
+      POPUP_Y + offset * SCALE,
+      SCALE,
+      POPUP_HEIGHT - offset * 2 * SCALE
     );
   }
 
   // Interior (black)
-  ctx.fillStyle = '#000000';
+  /*ctx.fillStyle = '#000000';
   ctx.fillRect(
     POPUP_X + BORDER_WIDTH,
     POPUP_Y + BORDER_WIDTH,
     POPUP_WIDTH - BORDER_WIDTH * 2,
     POPUP_HEIGHT - BORDER_WIDTH * 2
-  );
+  );*/
 
   // Draw about image centered
-  const CONTENT_X = POPUP_X + BORDER_WIDTH + PADDING;
-  const CONTENT_Y = POPUP_Y + BORDER_WIDTH + PADDING;
+  const CONTENT_X = POPUP_X + BORDER_WIDTH * SCALE + PADDING * SCALE;
+  const CONTENT_Y = POPUP_Y + BORDER_WIDTH * SCALE + PADDING * SCALE;
 
   if (aboutImage && aboutImage.complete && aboutImage.naturalWidth > 0) {
     ctx.drawImage(aboutImage, CONTENT_X, CONTENT_Y, drawW, drawH);
@@ -1871,15 +1868,19 @@ function drawHighScoresPopup() {
     return;
   }
 
-  // Popup dimensions (from original DLOG 256: 440x296)
-  const POPUP_WIDTH = 440 * SCALE;
-  const POPUP_HEIGHT = 296 * SCALE;
+  const POPUP_WIDTH = 452 * SCALE;
+  const POPUP_HEIGHT = 308 * SCALE;
   const POPUP_X = (canvas.width - POPUP_WIDTH) / 2;
   const POPUP_Y = (canvas.height - POPUP_HEIGHT) / 2;
 
   // Drop shadow (1px right, 1px bottom, plain black)
   ctx.fillStyle = '#000000';
-  ctx.fillRect(POPUP_X + SCALE, POPUP_Y + SCALE, POPUP_WIDTH, POPUP_HEIGHT);
+  ctx.fillRect(
+    POPUP_X + 2 * SCALE,
+    POPUP_Y + 2 * SCALE,
+    POPUP_WIDTH - SCALE,
+    POPUP_HEIGHT - SCALE
+  );
 
   // Black background (original: PaintRect(&gHiScoreDg->portRect))
   ctx.fillStyle = '#000000';
@@ -1899,35 +1900,35 @@ function drawHighScoresPopup() {
     // Top edge
     ctx.fillStyle = borderColors.topLeft[i];
     ctx.fillRect(
-      POPUP_X + offset,
-      POPUP_Y + offset,
-      POPUP_WIDTH - offset * 2,
-      1
+      POPUP_X + offset * SCALE,
+      POPUP_Y + offset * SCALE,
+      POPUP_WIDTH - offset * 2 * SCALE,
+      SCALE
     );
 
     // Left edge
     ctx.fillRect(
-      POPUP_X + offset,
-      POPUP_Y + offset,
-      1,
-      POPUP_HEIGHT - offset * 2
+      POPUP_X + offset * SCALE,
+      POPUP_Y + offset * SCALE,
+      SCALE,
+      POPUP_HEIGHT - offset * 2 * SCALE
     );
 
     // Bottom edge
     ctx.fillStyle = borderColors.bottomRight[i];
     ctx.fillRect(
-      POPUP_X + offset,
-      POPUP_Y + POPUP_HEIGHT - offset - 1,
-      POPUP_WIDTH - offset * 2,
-      1
+      POPUP_X + offset * SCALE,
+      POPUP_Y + POPUP_HEIGHT - offset * SCALE - SCALE,
+      POPUP_WIDTH - offset * 2 * SCALE,
+      SCALE
     );
 
     // Right edge
     ctx.fillRect(
-      POPUP_X + POPUP_WIDTH - offset - 1,
-      POPUP_Y + offset,
-      1,
-      POPUP_HEIGHT - offset * 2
+      POPUP_X + POPUP_WIDTH - offset * SCALE - SCALE,
+      POPUP_Y + offset * SCALE,
+      SCALE,
+      POPUP_HEIGHT - offset * 2 * SCALE
     );
   }
 
@@ -1952,39 +1953,55 @@ function drawHighScoresPopup() {
     highScoresImage.complete &&
     highScoresImage.naturalWidth > 0
   ) {
-    const headerX = CONTENT_X + 109 * SCALE;
-    const headerY = CONTENT_Y;
+    const headerX = CONTENT_X + 109 * SCALE + 3 * SCALE;
+    const headerY = CONTENT_Y + 3 * SCALE;
     ctx.drawImage(highScoresImage, headerX, headerY, 220 * SCALE, 50 * SCALE);
   }
 
   // Column headers (original: TextFont(2); TextSize(14); TextFace(4))
   // TextFace(4) = italic
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = `italic ${14 * SCALE}px Georgia, "Times New Roman", serif`;
+  ctx.font = `${15 * SCALE}px "Times New Roman", serif`;
 
-  const ROW_START_Y = CONTENT_Y + 60 * SCALE;
+  const ROW_START_Y = CONTENT_Y + 62 * SCALE;
   const ROW_HEIGHT = 22 * SCALE;
 
   // Column positions (from original, relative to content area)
-  const COL_NAME_X = CONTENT_X + 10 * SCALE;
-  const COL_SCORE_X = CONTENT_X + 255 * SCALE;
+  const COL_NAME_X = CONTENT_X + 14 * SCALE;
+  const COL_SCORE_X = CONTENT_X + 256 * SCALE;
   const COL_ROWS_X = CONTENT_X + 320 * SCALE;
   const COL_DATE_X = CONTENT_X + 335 * SCALE;
 
   ctx.textAlign = 'left';
   ctx.fillText('Name', COL_NAME_X, ROW_START_Y);
+  const { width: nameWidth } = ctx.measureText('Name');
+  ctx.fillRect(COL_NAME_X, ROW_START_Y + SCALE, nameWidth, SCALE);
+
   ctx.textAlign = 'right';
   ctx.fillText('Score', COL_SCORE_X, ROW_START_Y);
+  const { width: scoreWidth } = ctx.measureText('Score');
+  ctx.fillRect(
+    COL_SCORE_X - scoreWidth,
+    ROW_START_Y + SCALE,
+    scoreWidth,
+    SCALE
+  );
+
   ctx.fillText('Rows', COL_ROWS_X, ROW_START_Y);
+  const { width: rowsWidth } = ctx.measureText('Rows');
+  ctx.fillRect(COL_ROWS_X - rowsWidth, ROW_START_Y + SCALE, rowsWidth, SCALE);
+
   ctx.textAlign = 'left';
   ctx.fillText('Date', COL_DATE_X, ROW_START_Y);
+  const { width: dateWidth } = ctx.measureText('Date');
+  ctx.fillRect(COL_DATE_X, ROW_START_Y + SCALE, dateWidth, SCALE);
 
   // Draw each high score entry (original: TextFace(0) for normal)
-  ctx.font = `${14 * SCALE}px Georgia, "Times New Roman", serif`;
+  ctx.font = `${15 * SCALE}px "Times New Roman", serif`;
 
   for (let i = 0; i < HIGH_SCORE_COUNT; i++) {
     const entry = gHighScores[i];
-    const y = ROW_START_Y + (i + 1) * ROW_HEIGHT + 5 * SCALE;
+    const y = ROW_START_Y + (i + 1) * ROW_HEIGHT + 3 * SCALE;
 
     // Highlight player's recent high score in yellow (like original)
     if (i === gLastHighScoreIndex) {
