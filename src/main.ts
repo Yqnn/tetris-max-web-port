@@ -1,5 +1,8 @@
 import './style.css';
 
+import type { MusicStyle } from './sound';
+import { initSound } from './sound';
+
 /**
  * Tetris Max - Accurate Web Port
  * Ported from the original PowerPC Macintosh version
@@ -98,7 +101,7 @@ let backgroundImages: (HTMLImageElement | null)[] = [];
 // Current asset selections
 let currentPiecesStyle = 'default';
 let currentBackgroundStyle = 'default';
-let currentMusicStyle: keyof typeof MUSIC_CONFIGS = 'peter_wagner';
+let currentMusicStyle: MusicStyle = 'peter_wagner';
 
 // Background filenames (all sets use level01.png through level10.png now)
 const BACKGROUND_FILES = [
@@ -113,6 +116,8 @@ const BACKGROUND_FILES = [
   'level09.png',
   'level10.png',
 ];
+
+let SOUND: Awaited<ReturnType<typeof initSound>> | null = null;
 
 // Load and slice the pieces image into individual block canvases (scaled 2x)
 function loadPiecesImage(style: string | null = null): Promise<void> {
@@ -364,24 +369,6 @@ let gHardDropStartTime = 0;
 let lastFrameTime = 0;
 let tickAccumulator = 0;
 
-// Audio
-let audioContext: AudioContext | null = null;
-const soundFiles = {
-  drop: 'sounds/drop.wav',
-  stick: 'sounds/stick.wav',
-  clear1: 'sounds/clear1.wav',
-  clear2: 'sounds/clear2.wav',
-  clear3: 'sounds/clear3.wav',
-  clear4: 'sounds/clear4.wav',
-  highscore: 'sounds/highscore.wav',
-  smallBonus: 'sounds/smallBonus.wav',
-  bigBonus: 'sounds/bigBonus.wav',
-  newLevel: 'sounds/newlevel.wav',
-  gameOver: 'sounds/gameover.wav',
-  pause: 'sounds/pause.wav',
-};
-const sounds: Partial<Record<keyof typeof soundFiles, AudioBuffer>> = {};
-
 // ===========================================
 // PIECE SETUP (exact from SetupDefaultPieces)
 // ===========================================
@@ -624,9 +611,9 @@ function ReduceRows(wasDropOrFreefall: boolean) {
 
   // Play piece placement sound (exact from original)
   if (wasDropOrFreefall) {
-    playSound('drop');
+    SOUND?.playSound('drop');
   } else {
-    playSound('stick');
+    SOUND?.playSound('stick');
   }
 
   // Find full rows
@@ -665,10 +652,10 @@ function ReduceRows(wasDropOrFreefall: boolean) {
     gClearAnimData = { dropped, bonus, wasDropOrFreefall };
 
     // Play clear sound immediately
-    if (dropped === 1) playSound('clear1');
-    else if (dropped === 2) playSound('clear2');
-    else if (dropped === 3) playSound('clear3');
-    else if (dropped === 4) playSound('clear4');
+    if (dropped === 1) SOUND?.playSound('clear1');
+    else if (dropped === 2) SOUND?.playSound('clear2');
+    else if (dropped === 3) SOUND?.playSound('clear3');
+    else if (dropped === 4) SOUND?.playSound('clear4');
   } else {
     // No rows to clear, spawn next piece immediately
     resetMovementFlags();
@@ -720,13 +707,13 @@ function finishRowClearing() {
   if (boardEmpty) {
     tbonus = true;
     gCurrentScore += SCORE_CLEAR_BOARD_BONUS;
-    playSound('bigBonus');
+    SOUND?.playSound('bigBonus');
   }
 
   if (bonus) {
     gCurrentScore += SCORE_SAME_COLOR_BONUS;
     if (!tbonus) {
-      playSound('smallBonus');
+      SOUND?.playSound('smallBonus');
     }
   }
 
@@ -734,7 +721,7 @@ function finishRowClearing() {
   if (gLinesCleared >= LEVEL_THRESHOLD[gCurrentLev] && gCurrentLev < 10) {
     gCurrentLev++;
     if (!bonus && !tbonus) {
-      playSound('newLevel');
+      SOUND?.playSound('newLevel');
     }
   }
 
@@ -1549,18 +1536,16 @@ function StartNewGame() {
   tickAccumulator = 0;
 
   // Start music
-  if (gMusicOn) {
-    startMusic();
-  }
+  SOUND?.startMusic(currentMusicStyle);
 }
 
 function StopGame() {
   gGameInProgress = false;
 
   // Stop music
-  stopMusic();
+  SOUND?.stopMusic();
 
-  playSound('gameOver');
+  SOUND?.playSound('gameOver');
 
   // Update UI
   getButton('startBtn').textContent = 'Begin Game';
@@ -1629,13 +1614,8 @@ async function checkAndRecordHighScore() {
       const finalScore = gCurrentScore;
       const finalRows = gLinesCleared;
 
-      // Ensure audioContext is running before playing sound
-      if (audioContext && audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-
       // Play high score sound and wait for it to finish (like original: AsyncPlay(gHighScoreSnd))
-      playSound('highscore');
+      SOUND?.playSound('highscore');
 
       // Show HTML modal for name entry (original used Mac dialog)
       showHighScoreModal(scoreIndex, finalScore, finalRows);
@@ -1665,15 +1645,7 @@ function showHighScores() {
   if (gGameInProgress && !gGamePause) {
     gGamePause = true;
     getButton('pauseBtn').textContent = 'Resume';
-    if (musicSource) {
-      try {
-        musicSource.onended = null;
-        musicSource.stop();
-      } catch {
-        /**/
-      }
-      musicSource = null;
-    }
+    SOUND?.stopMusic();
   }
   DrawWindow();
 }
@@ -1745,15 +1717,7 @@ function showAbout() {
   if (gGameInProgress && !gGamePause) {
     gGamePause = true;
     getButton('pauseBtn').textContent = 'Resume';
-    if (musicSource) {
-      try {
-        musicSource.onended = null;
-        musicSource.stop();
-      } catch {
-        /**/
-      }
-      musicSource = null;
-    }
+    SOUND?.stopMusic();
   }
   DrawWindow();
 }
@@ -2038,17 +2002,8 @@ function TogglePause() {
   getButton('pauseBtn').textContent = gGamePause ? 'Resume' : 'Pause';
 
   if (gGamePause) {
-    playSound('pause');
-    // Stop music during pause
-    if (musicSource) {
-      try {
-        musicSource.onended = null; // Prevent callback
-        musicSource.stop();
-      } catch {
-        /**/
-      }
-      musicSource = null;
-    }
+    SOUND?.playSound('pause');
+    SOUND?.stopMusic();
   } else {
     gLastDropTime = getTicks();
     // Close High Scores and About when resuming
@@ -2058,10 +2013,8 @@ function TogglePause() {
     if (gShowingAbout) {
       gShowingAbout = false;
     }
-    // Resume music (startMusic so it restarts even if user changed music during pause)
-    if (gMusicOn && musicBuffers.length > 0) {
-      startMusic();
-    }
+    // Resume music (SOUND?.startMusic so it restarts even if user changed music during pause)
+    SOUND?.startMusic(currentMusicStyle);
   }
 
   // Redraw to show/hide pause overlay
@@ -2115,258 +2068,6 @@ function MainLoop(timestamp: number) {
 }
 
 // ===========================================
-// AUDIO SYSTEM
-// ===========================================
-
-// Music state
-let musicBuffers: (AudioBuffer | null)[] = [];
-let musicSegmentNames: string[] = [];
-let currentMusicSegment = 0;
-let repeatMusicSegment = 0;
-let lastMusicSegment = 0;
-let musicSource: AudioBufferSourceNode | null = null;
-let musicGainNode: GainNode | null = null;
-let gMusicOn = true;
-let gSoundOn = true;
-
-// Music configurations for different styles
-const MUSIC_CONFIGS = {
-  peter_wagner: {
-    prefix: 'peter_wagner',
-    segments: [
-      'repeat',
-      'repeat',
-      'CD',
-      'repeat',
-      'repeat',
-      'E',
-      'E',
-      'Fa',
-      'Fb',
-      'Fc',
-      'repeat',
-      'repeat',
-      'E',
-      'Fb',
-      'G',
-    ],
-    repeatSegment: 0,
-    folder: 'music',
-  },
-  animal_instinct: {
-    prefix: 'animal_instinct',
-    segments: ['A'], // Single looping segment
-    repeatSegment: 0,
-    folder: 'music',
-  },
-};
-let gMusicIsPlaying = false;
-
-async function initAudio() {
-  try {
-    audioContext = new window.AudioContext({
-      latencyHint: 'interactive',
-    });
-
-    const names = Object.keys(soundFiles) as (keyof typeof soundFiles)[];
-
-    // Load all sound files
-    for (const name of names) {
-      try {
-        const path = soundFiles[name];
-        const response = await fetch(path);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        sounds[name] = audioBuffer;
-      } catch (e) {
-        console.log(`Failed to load sound: ${name}`, e);
-      }
-    }
-
-    console.log(`Loaded ${Object.keys(sounds).length} sounds`);
-
-    // Load default music
-    await loadMusicSegments(currentMusicStyle);
-  } catch (e) {
-    console.log('Audio not available:', e);
-  }
-}
-
-// Load music segments for a given style
-async function loadMusicSegments(style: keyof typeof MUSIC_CONFIGS) {
-  const config = MUSIC_CONFIGS[style];
-  if (!config) {
-    console.warn(`Unknown music style: ${style}`);
-    return;
-  }
-
-  if (!audioContext) {
-    return;
-  }
-  musicSegmentNames = config.segments;
-  repeatMusicSegment = config.repeatSegment;
-  lastMusicSegment = config.segments.length - 1;
-
-  // Load unique segments first, then reference them for the full sequence
-  const uniqueSegments = [...new Set(musicSegmentNames)];
-  const segmentCache: Record<string, AudioBuffer | null> = {};
-
-  for (const segName of uniqueSegments) {
-    try {
-      const response = await fetch(
-        `${config.folder}/${config.prefix}_${segName}.wav`
-      );
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      segmentCache[segName] = audioBuffer;
-    } catch (e) {
-      console.log(`Failed to load music segment: ${segName}`, e);
-      segmentCache[segName] = null;
-    }
-  }
-
-  // Build the full sequence array referencing cached buffers
-  musicBuffers = musicSegmentNames.map((name) => segmentCache[name] || null);
-
-  console.log(
-    `Loaded music style: ${style} (${Object.keys(segmentCache).filter((k) => segmentCache[k]).length} segments)`
-  );
-}
-
-function startMusic() {
-  if (!audioContext || !gMusicOn || musicBuffers.length === 0) return;
-
-  // Resume audio context if suspended
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-
-  currentMusicSegment = 0;
-  gMusicIsPlaying = true;
-  playMusicSegment();
-}
-
-function playMusicSegment() {
-  if (!gMusicIsPlaying || !gMusicOn || gGamePause) return;
-
-  if (!audioContext) {
-    return;
-  }
-
-  // Safety check (shouldn't normally happen with correct logic)
-  if (currentMusicSegment >= musicBuffers.length || currentMusicSegment < 0) {
-    currentMusicSegment = repeatMusicSegment;
-  }
-
-  const buffer = musicBuffers[currentMusicSegment];
-  if (!buffer) {
-    // Skip missing segment using original logic
-    if (currentMusicSegment === lastMusicSegment) {
-      currentMusicSegment = repeatMusicSegment;
-    } else {
-      currentMusicSegment++;
-    }
-    playMusicSegment();
-    return;
-  }
-
-  // Stop any currently playing music source
-  if (musicSource) {
-    try {
-      musicSource.onended = null;
-      musicSource.stop();
-    } catch {
-      /**/
-    }
-  }
-
-  // Create new source
-  musicSource = audioContext.createBufferSource();
-  musicSource.buffer = buffer;
-
-  // Create gain node for music volume
-  musicGainNode = audioContext.createGain();
-  musicGainNode.gain.value = 0.3; // 30% volume for background music
-
-  musicSource.connect(musicGainNode);
-  musicGainNode.connect(audioContext.destination);
-
-  // When this segment ends, play the next one (original MusicSeq logic)
-  musicSource.onended = () => {
-    if (gMusicIsPlaying && gMusicOn) {
-      // Original: if current == last, go to repeat; else increment
-      if (currentMusicSegment === lastMusicSegment) {
-        currentMusicSegment = repeatMusicSegment;
-      } else {
-        currentMusicSegment++;
-      }
-      playMusicSegment();
-    }
-  };
-
-  musicSource.start(0);
-}
-
-function stopMusic() {
-  gMusicIsPlaying = false;
-  if (musicSource) {
-    try {
-      musicSource.onended = null;
-      musicSource.stop();
-    } catch {
-      /**/
-    }
-    musicSource = null;
-  }
-}
-
-function toggleMusic() {
-  gMusicOn = !gMusicOn;
-  if (gMusicOn && gGameInProgress && !gGamePause) {
-    startMusic();
-  } else {
-    stopMusic();
-  }
-  // Update button text
-  const musicBtn = document.getElementById('musicBtn');
-  if (musicBtn) {
-    musicBtn.textContent = gMusicOn ? 'Music: ON' : 'Music: OFF';
-  }
-}
-
-function toggleSound() {
-  gSoundOn = !gSoundOn;
-  // Update button text
-  const soundBtn = document.getElementById('soundBtn');
-  if (soundBtn) {
-    soundBtn.textContent = gSoundOn
-      ? 'Sound Effects: ON'
-      : 'Sound Effects: OFF';
-  }
-}
-
-function playSound(name: keyof typeof sounds) {
-  if (!audioContext || !sounds[name] || !gSoundOn) return;
-
-  // Resume audio context if suspended (browser autoplay policy)
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-
-  // Create buffer source and play the sound
-  const source = audioContext.createBufferSource();
-  source.buffer = sounds[name];
-
-  // Add gain node for volume control
-  const gainNode = audioContext.createGain();
-  gainNode.gain.value = 0.5; // 50% volume
-
-  source.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  source.start(audioContext.currentTime + 0.01);
-}
-
-// ===========================================
 // INITIALIZATION
 // ===========================================
 
@@ -2400,7 +2101,11 @@ async function init() {
   await loadOverlayImages();
 
   // Initialize audio (load sound files)
-  await initAudio();
+  try {
+    SOUND = await initSound(currentMusicStyle);
+  } catch (e) {
+    console.error('Failed to initialize audio', e);
+  }
 
   // Initialize game (but don't start)
   InitGame();
@@ -2451,9 +2156,8 @@ async function init() {
 
   getButton('startBtn').addEventListener('click', () => {
     // Resume audio context on user interaction
-    if (audioContext && audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
+    SOUND?.startMusic(currentMusicStyle);
+
     // Close popups if showing
     if (gShowingHighScores) {
       hideHighScores();
@@ -2465,8 +2169,24 @@ async function init() {
   });
 
   getButton('pauseBtn').addEventListener('click', TogglePause);
-  getButton('musicBtn').addEventListener('click', toggleMusic);
-  getButton('soundBtn').addEventListener('click', toggleSound);
+  getButton('musicBtn').addEventListener('click', () => {
+    const gMusicOn = SOUND?.toggleMusic(gGameInProgress && !gGamePause);
+    // Update button text
+    const musicBtn = document.getElementById('musicBtn');
+    if (musicBtn) {
+      musicBtn.textContent = gMusicOn ? 'Music: ON' : 'Music: OFF';
+    }
+  });
+  getButton('soundBtn').addEventListener('click', () => {
+    const gSoundOn = SOUND?.toggleSound();
+    // Update button text
+    const soundBtn = document.getElementById('soundBtn');
+    if (soundBtn) {
+      soundBtn.textContent = gSoundOn
+        ? 'Sound Effects: ON'
+        : 'Sound Effects: OFF';
+    }
+  });
   getButton('highScoresBtn').addEventListener('click', () => {
     if (gShowingHighScores) {
       hideHighScores();
@@ -2522,17 +2242,16 @@ async function init() {
   });
 
   getSelect('musicSelect').addEventListener('change', async (e) => {
-    const wasPlaying = gMusicIsPlaying;
+    const wasPlaying = SOUND?.getIsPlaying();
     if (wasPlaying) {
-      stopMusic();
+      SOUND?.stopMusic();
     }
     const value = (e?.target as HTMLSelectElement)?.value;
     if (value === 'peter_wagner' || value === 'animal_instinct') {
       currentMusicStyle = value;
     }
-    await loadMusicSegments(currentMusicStyle);
     if (wasPlaying && gGameInProgress && !gGamePause) {
-      startMusic();
+      await SOUND?.startMusic(currentMusicStyle);
     }
   });
 
