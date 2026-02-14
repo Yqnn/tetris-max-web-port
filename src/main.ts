@@ -2,6 +2,13 @@ import './style.css';
 
 import type { MusicStyle } from './sound';
 import { initSound } from './sound';
+import {
+  initSprites,
+  type PieceStyle,
+  type BGStyle,
+  isBGStyle,
+  isPieceStyle,
+} from './sprites';
 
 /**
  * Tetris Max - Accurate Web Port
@@ -92,193 +99,13 @@ const SLOW_MOVE_TICKS = 15; // Slow movement delay
 // Using actual Default Pieces and Default Backgrounds
 // ===========================================
 
-// Pre-rendered piece block images (16x16 canvas for each color)
-let pieceBlockCanvases: HTMLCanvasElement[] = [];
-
-// Background pattern images (64x64 tiles for each level)
-let backgroundImages: (HTMLImageElement | null)[] = [];
-
 // Current asset selections
-let currentPiecesStyle = 'default';
-let currentBackgroundStyle = 'default';
+let currentPiecesStyle: PieceStyle = 'default';
+let currentBackgroundStyle: BGStyle = 'default';
 let currentMusicStyle: MusicStyle = 'peter_wagner';
 
-// Background filenames (all sets use level01.png through level10.png now)
-const BACKGROUND_FILES = [
-  'level01.png',
-  'level02.png',
-  'level03.png',
-  'level04.png',
-  'level05.png',
-  'level06.png',
-  'level07.png',
-  'level08.png',
-  'level09.png',
-  'level10.png',
-];
-
 let SOUND: Awaited<ReturnType<typeof initSound>> | null = null;
-
-// Load and slice the pieces image into individual block canvases (scaled 2x)
-function loadPiecesImage(style: string | null = null): Promise<void> {
-  const pieceStyle = style || currentPiecesStyle;
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      // Original image is 112x16 (7 blocks of 16x16)
-      // Scale each block to BLOCK_WIDTH x BLOCK_HEIGHT (32x32 at 2x scale)
-      const ORIGINAL_BLOCK = 16;
-
-      pieceBlockCanvases = [];
-      for (let i = 0; i < 7; i++) {
-        const blockCanvas = document.createElement('canvas');
-        blockCanvas.width = BLOCK_WIDTH;
-        blockCanvas.height = BLOCK_HEIGHT;
-        const blockCtx = blockCanvas.getContext('2d');
-
-        if (!blockCtx) {
-          continue;
-        }
-
-        // Disable smoothing for pixel-perfect scaling
-        blockCtx.imageSmoothingEnabled = false;
-
-        // Copy and scale from 16x16 source to 32x32 destination
-        blockCtx.drawImage(
-          img,
-          i * ORIGINAL_BLOCK,
-          0, // Source x, y (original 16x16 positions)
-          ORIGINAL_BLOCK,
-          ORIGINAL_BLOCK, // Source width, height
-          0,
-          0, // Dest x, y
-          BLOCK_WIDTH,
-          BLOCK_HEIGHT // Dest scaled size
-        );
-
-        pieceBlockCanvases.push(blockCanvas);
-      }
-
-      console.log(`Loaded piece style: ${pieceStyle}`);
-      resolve();
-    };
-    img.onerror = () => {
-      console.warn('Could not load pieces image, using fallback');
-      generateFallbackBlocks();
-      resolve();
-    };
-    img.src = `pieces/${pieceStyle}.png`;
-  });
-}
-
-// Load background pattern images
-function loadBackgroundImages(style: string | null = null): Promise<void> {
-  const bgStyle = style || currentBackgroundStyle;
-  backgroundImages = []; // Clear existing
-
-  const promises = BACKGROUND_FILES.map((filename, index) => {
-    return new Promise<void>((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        backgroundImages[index] = img;
-        resolve();
-      };
-      img.onerror = () => {
-        console.warn(`Could not load background ${filename}`);
-        backgroundImages[index] = null;
-        resolve();
-      };
-      img.src = `backgrounds/${bgStyle}/${filename}`;
-    });
-  });
-
-  return Promise.all(promises).then(() => {
-    console.log(
-      `Loaded background style: ${bgStyle} (${backgroundImages.filter((b) => b).length} patterns)`
-    );
-  });
-}
-
-// Fallback procedural block generation (in case assets fail to load)
-function generateFallbackBlocks() {
-  const PIECE_COLORS = [
-    {
-      base: [255, 204, 0],
-      light: [255, 255, 102],
-      dark: [153, 102, 0],
-      highlight: [255, 255, 204],
-    },
-    {
-      base: [0, 204, 204],
-      light: [102, 255, 255],
-      dark: [0, 102, 102],
-      highlight: [204, 255, 255],
-    },
-    {
-      base: [255, 102, 0],
-      light: [255, 178, 102],
-      dark: [153, 51, 0],
-      highlight: [255, 204, 153],
-    },
-    {
-      base: [0, 102, 255],
-      light: [102, 178, 255],
-      dark: [0, 51, 153],
-      highlight: [153, 204, 255],
-    },
-    {
-      base: [255, 0, 0],
-      light: [255, 102, 102],
-      dark: [153, 0, 0],
-      highlight: [255, 153, 153],
-    },
-    {
-      base: [0, 204, 0],
-      light: [102, 255, 102],
-      dark: [0, 102, 0],
-      highlight: [153, 255, 153],
-    },
-    {
-      base: [204, 0, 204],
-      light: [255, 102, 255],
-      dark: [102, 0, 102],
-      highlight: [255, 178, 255],
-    },
-  ];
-
-  pieceBlockCanvases = [];
-  for (let i = 0; i < 7; i++) {
-    const colorDef = PIECE_COLORS[i];
-    const canvas = document.createElement('canvas');
-    canvas.width = BLOCK_WIDTH;
-    canvas.height = BLOCK_HEIGHT;
-    const blockCtx = canvas.getContext('2d');
-
-    if (!blockCtx) {
-      continue;
-    }
-
-    // Simple 3D block
-    blockCtx.fillStyle = `rgb(${colorDef.base[0]}, ${colorDef.base[1]}, ${colorDef.base[2]})`;
-    blockCtx.fillRect(0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
-    blockCtx.strokeStyle = '#000000';
-    blockCtx.strokeRect(0.5, 0.5, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1);
-    blockCtx.fillStyle = `rgb(${colorDef.light[0]}, ${colorDef.light[1]}, ${colorDef.light[2]})`;
-    blockCtx.fillRect(1, 1, BLOCK_WIDTH - 2, 2);
-    blockCtx.fillRect(1, 1, 2, BLOCK_HEIGHT - 2);
-    blockCtx.fillStyle = `rgb(${colorDef.dark[0]}, ${colorDef.dark[1]}, ${colorDef.dark[2]})`;
-    blockCtx.fillRect(1, BLOCK_HEIGHT - 3, BLOCK_WIDTH - 2, 2);
-    blockCtx.fillRect(BLOCK_WIDTH - 3, 1, 2, BLOCK_HEIGHT - 2);
-
-    pieceBlockCanvases.push(canvas);
-  }
-}
-
-// Initialize background patterns (load from extracted assets)
-async function initBackgroundPatterns() {
-  await loadBackgroundImages();
-}
-
+let SPRITES: Awaited<ReturnType<typeof initSprites>> | null = null;
 // ===========================================
 // TYPE DEFINITIONS (matching original structs)
 // ===========================================
@@ -331,10 +158,8 @@ const HIGH_SCORE_COUNT = 10;
 let gHighScores: HighScore[] = []; // Array of {name, score, rows, date}
 let gLastHighScoreIndex = -1; // Index of player's latest high score entry
 let gShowingHighScores = false; // Whether high scores popup is visible
-let highScoresImage: HTMLImageElement | null = null; // PICT 259 header image
 let gPendingHighScore: PendingHighScore | null = null; // { scoreIndex, finalScore, finalRows } when high score name modal is open
 let gShowingAbout = false; // Whether about popup is visible
-let aboutImage: HTMLImageElement | null = null; // About panel image
 
 // Timing (in ticks)
 let gLastDropTime = 0;
@@ -374,66 +199,55 @@ let tickAccumulator = 0;
 // ===========================================
 
 function SetupDefaultPieces() {
-  gPieceList = [];
-
-  for (let i = 0; i < 7; i++) {
-    const piece: Piece = {
-      height: BOARD_ROWS + 4 - 3, // = 21 (starting height)
-      offset: Math.floor(BOARD_COLS / 2) - 2, // = 3 (centered)
-      color: i,
-      grid: [],
-    };
-
-    // Initialize 4x4 grid to zeros
-    for (let col = 0; col < 4; col++) {
-      piece.grid[col] = [0, 0, 0, 0];
-    }
-
-    gPieceList.push(piece);
-  }
-
-  // Square block (color 0) - Yellow
-  // grid[col][row] - EXACT from original SetupDefaultPieces
-  gPieceList[0].grid[1][1] = 1;
-  gPieceList[0].grid[1][2] = 1;
-  gPieceList[0].grid[2][1] = 1;
-  gPieceList[0].grid[2][2] = 1;
-
-  // Long block (color 1) - Cyan (I-piece) - VERTICAL in column 1
-  gPieceList[1].grid[1][0] = 2;
-  gPieceList[1].grid[1][1] = 2;
-  gPieceList[1].grid[1][2] = 2;
-  gPieceList[1].grid[1][3] = 2;
-
-  // Left-pointing L (color 2) - Orange (J-piece)
-  gPieceList[2].grid[2][0] = 3;
-  gPieceList[2].grid[2][1] = 3;
-  gPieceList[2].grid[2][2] = 3;
-  gPieceList[2].grid[3][2] = 3;
-
-  // Right-pointing L (color 3) - Blue (L-piece)
-  gPieceList[3].grid[2][0] = 4;
-  gPieceList[3].grid[2][1] = 4;
-  gPieceList[3].grid[2][2] = 4;
-  gPieceList[3].grid[1][2] = 4;
-
-  // Left-pointing step (color 4) - Red (S-piece)
-  gPieceList[4].grid[2][0] = 5;
-  gPieceList[4].grid[2][1] = 5;
-  gPieceList[4].grid[1][1] = 5;
-  gPieceList[4].grid[1][2] = 5;
-
-  // Right-pointing step (color 5) - Green (Z-piece)
-  gPieceList[5].grid[1][0] = 6;
-  gPieceList[5].grid[1][1] = 6;
-  gPieceList[5].grid[2][1] = 6;
-  gPieceList[5].grid[2][2] = 6;
-
-  // T (color 6) - Magenta
-  gPieceList[6].grid[2][2] = 7;
-  gPieceList[6].grid[1][1] = 7;
-  gPieceList[6].grid[2][1] = 7;
-  gPieceList[6].grid[3][1] = 7;
+  gPieceList = [
+    [
+      [0, 0, 0, 0],
+      [0, 1, 1, 0],
+      [0, 1, 1, 0],
+      [0, 0, 0, 0],
+    ],
+    [
+      [0, 0, 0, 0],
+      [2, 2, 2, 2],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ],
+    [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [3, 3, 3, 0],
+      [0, 0, 3, 0],
+    ],
+    [
+      [0, 0, 0, 0],
+      [0, 0, 4, 0],
+      [4, 4, 4, 0],
+      [0, 0, 0, 0],
+    ],
+    [
+      [0, 0, 0, 0],
+      [0, 5, 5, 0],
+      [5, 5, 0, 0],
+      [0, 0, 0, 0],
+    ],
+    [
+      [0, 0, 0, 0],
+      [6, 6, 0, 0],
+      [0, 6, 6, 0],
+      [0, 0, 0, 0],
+    ],
+    [
+      [0, 0, 0, 0],
+      [0, 7, 0, 0],
+      [0, 7, 7, 0],
+      [0, 7, 0, 0],
+    ],
+  ].map((grid, color) => ({
+    height: BOARD_ROWS + 4 - 3,
+    offset: Math.floor(BOARD_COLS / 2) - 2,
+    color,
+    grid,
+  }));
 }
 
 // ===========================================
@@ -456,31 +270,26 @@ function CopyPiece(src: Piece): Piece {
 // Clockwise rotation (exact from original RotateCw)
 function RotateCw(color: number, grid: number[][]) {
   let ttype;
-
   switch (color) {
     case 0: // Square - no rotation
       return;
-
     case 1: // Long block (I-piece) - 4x4 rotation
       ttype = grid[1][0];
       grid[1][0] = grid[0][2];
       grid[0][2] = grid[2][3];
       grid[2][3] = grid[3][1];
       grid[3][1] = ttype;
-
       ttype = grid[2][0];
       grid[2][0] = grid[0][1];
       grid[0][1] = grid[1][3];
       grid[1][3] = grid[3][2];
       grid[3][2] = ttype;
-
       ttype = grid[1][1];
       grid[1][1] = grid[1][2];
       grid[1][2] = grid[2][2];
       grid[2][2] = grid[2][1];
       grid[2][1] = ttype;
       break;
-
     case 2:
     case 3:
     case 4:
@@ -491,7 +300,6 @@ function RotateCw(color: number, grid: number[][]) {
       grid[1][2] = grid[3][2];
       grid[3][2] = grid[3][0];
       grid[3][0] = ttype;
-
       ttype = grid[2][0];
       grid[2][0] = grid[1][1];
       grid[1][1] = grid[2][2];
@@ -503,49 +311,8 @@ function RotateCw(color: number, grid: number[][]) {
 
 // Counter-clockwise rotation (exact from original RotateCCw)
 function RotateCCw(color: number, grid: number[][]) {
-  let ttype;
-
-  switch (color) {
-    case 0: // Square - no rotation
-      return;
-
-    case 1: // Long block (I-piece)
-      ttype = grid[3][1];
-      grid[3][1] = grid[2][3];
-      grid[2][3] = grid[0][2];
-      grid[0][2] = grid[1][0];
-      grid[1][0] = ttype;
-
-      ttype = grid[2][0];
-      grid[2][0] = grid[3][2];
-      grid[3][2] = grid[1][3];
-      grid[1][3] = grid[0][1];
-      grid[0][1] = ttype;
-
-      ttype = grid[1][1];
-      grid[1][1] = grid[2][1];
-      grid[2][1] = grid[2][2];
-      grid[2][2] = grid[1][2];
-      grid[1][2] = ttype;
-      break;
-
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6: // L, J, S, Z, T pieces
-      ttype = grid[1][0];
-      grid[1][0] = grid[3][0];
-      grid[3][0] = grid[3][2];
-      grid[3][2] = grid[1][2];
-      grid[1][2] = ttype;
-
-      ttype = grid[2][0];
-      grid[2][0] = grid[3][1];
-      grid[3][1] = grid[2][2];
-      grid[2][2] = grid[1][1];
-      grid[1][1] = ttype;
-      break;
+  for (let i = 0; i < 3; i++) {
+    RotateCw(color, grid);
   }
 }
 
@@ -724,8 +491,6 @@ function finishRowClearing() {
       SOUND?.playSound('newLevel');
     }
   }
-
-  UpdateScoreDisplay();
 
   // Clear animation state
   gClearingRows = false;
@@ -906,28 +671,14 @@ const SCORE_HEIGHT = ORIGINAL.SCORE_HEIGHT * SCALE;
 const SCORE_SPACING = ORIGINAL.SCORE_SPACING * SCALE;
 
 function DrawWindow() {
+  if (!ctx) {
+    return;
+  }
+
   // Fill with background pattern (scaled 2x)
-  const bgImage = backgroundImages[gCurrentLev - 1];
-  if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
-    // Create scaled pattern for 2x rendering
-    const scaledPattern = document.createElement('canvas');
-    scaledPattern.width = bgImage.width * SCALE;
-    scaledPattern.height = bgImage.height * SCALE;
-    const pCtx = scaledPattern.getContext('2d');
-    if (!pCtx) {
-      return;
-    }
-    pCtx.imageSmoothingEnabled = false;
-    pCtx.drawImage(bgImage, 0, 0, scaledPattern.width, scaledPattern.height);
-
-    if (!ctx) {
-      return;
-    }
-
-    const pattern = ctx.createPattern(scaledPattern, 'repeat');
-    if (pattern) {
-      ctx.fillStyle = pattern;
-    }
+  const pattern = SPRITES?.getBackgroundImage(gCurrentLev - 1);
+  if (pattern) {
+    ctx.fillStyle = pattern;
     if (canvas) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -1005,18 +756,9 @@ function DrawNextBox() {
           const y = baseY + j * BLOCK_HEIGHT;
           const colorIndex = gNextPiece.color;
 
-          if (
-            colorIndex >= 0 &&
-            colorIndex < 7 &&
-            pieceBlockCanvases[colorIndex]
-          ) {
-            ctx.drawImage(
-              pieceBlockCanvases[colorIndex],
-              x,
-              y,
-              BLOCK_WIDTH,
-              BLOCK_HEIGHT
-            );
+          const piecesImage = SPRITES?.getPiecesImage(colorIndex);
+          if (colorIndex >= 0 && colorIndex < 7 && piecesImage) {
+            ctx.drawImage(piecesImage, x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
           }
         }
       }
@@ -1073,7 +815,11 @@ function DrawScoreBoxes() {
   // Values drawn in gGrayRGB (RGB 20000/65535 ≈ 30% = #4E4E4E)
   // Values: 18pt normal, right-aligned at x=89, y=50
 
-  const frameImages = [scoreFrameImage, levelFrameImage, rowsFrameImage];
+  const frameImages = [
+    SPRITES?.getMainSprite('scoreFrame'),
+    SPRITES?.getMainSprite('levelFrame'),
+    SPRITES?.getMainSprite('rowsFrame'),
+  ];
   const values = [gCurrentScore, gCurrentLev, gLinesCleared];
 
   // Frame dimensions from PICT (98x63), scale to our display
@@ -1085,7 +831,7 @@ function DrawScoreBoxes() {
     const frameImg = frameImages[i];
 
     // Draw the extracted frame image (contains label and decorative border)
-    if (frameImg && frameImg.complete && frameImg.naturalWidth > 0) {
+    if (frameImg?.complete) {
       // Draw frame scaled to match our 2x display
       ctx.drawImage(frameImg, SCORE_X, boxY, FRAME_WIDTH, FRAME_HEIGHT);
     } else {
@@ -1113,70 +859,7 @@ function DrawScoreBoxes() {
   ctx.textAlign = 'left';
 }
 
-// Overlay images (extracted from original PICT 256/257)
-let gameOverImage: HTMLImageElement | null = null;
-let pauseImage: HTMLImageElement | null = null;
-
-// Welcome screen image (extracted from original PICT 258)
-let welcomeImage: HTMLImageElement | null = null;
 let gShowWelcomeScreen = true; // Show welcome screen until game starts
-
-// Score box frame images (extracted from original PICT 260/261/262)
-let scoreFrameImage: HTMLImageElement | null = null;
-let levelFrameImage: HTMLImageElement | null = null;
-let rowsFrameImage: HTMLImageElement | null = null;
-
-// Load overlay images
-async function loadOverlayImages() {
-  return new Promise<void>((resolve) => {
-    let loaded = 0;
-    const total = 8; // gameover, pause, welcome, highscores, about, score, level, rows frames
-    const checkDone = () => {
-      loaded++;
-      if (loaded >= total) resolve();
-    };
-
-    gameOverImage = new Image();
-    gameOverImage.onload = checkDone;
-    gameOverImage.onerror = checkDone;
-    gameOverImage.src = 'sprites/gameover.png';
-
-    pauseImage = new Image();
-    pauseImage.onload = checkDone;
-    pauseImage.onerror = checkDone;
-    pauseImage.src = 'sprites/pause.png';
-
-    welcomeImage = new Image();
-    welcomeImage.onload = checkDone;
-    welcomeImage.onerror = checkDone;
-    welcomeImage.src = 'sprites/welcome.png';
-
-    highScoresImage = new Image();
-    highScoresImage.onload = checkDone;
-    highScoresImage.onerror = checkDone;
-    highScoresImage.src = 'sprites/highscores.png';
-
-    aboutImage = new Image();
-    aboutImage.onload = checkDone;
-    aboutImage.onerror = checkDone;
-    aboutImage.src = 'sprites/about.png';
-
-    scoreFrameImage = new Image();
-    scoreFrameImage.onload = checkDone;
-    scoreFrameImage.onerror = checkDone;
-    scoreFrameImage.src = 'sprites/score_frame.png';
-
-    levelFrameImage = new Image();
-    levelFrameImage.onload = checkDone;
-    levelFrameImage.onerror = checkDone;
-    levelFrameImage.src = 'sprites/level_frame.png';
-
-    rowsFrameImage = new Image();
-    rowsFrameImage.onload = checkDone;
-    rowsFrameImage.onerror = checkDone;
-    rowsFrameImage.src = 'sprites/rows_frame.png';
-  });
-}
 
 // Draw welcome screen (original PICT 258) - shown before game starts
 function DrawWelcome() {
@@ -1184,7 +867,8 @@ function DrawWelcome() {
     return;
   }
   // Draw welcome image filling the board area
-  if (welcomeImage && welcomeImage.complete && welcomeImage.naturalWidth > 0) {
+  const welcomeImage = SPRITES?.getMainSprite('welcome');
+  if (welcomeImage?.complete) {
     // Welcome image is 160x320 (board size), scale to our 2x display
     ctx.drawImage(welcomeImage, BOARD_X, BOARD_Y, BOARD_WIDTH, BOARD_HEIGHT);
   } else {
@@ -1210,9 +894,9 @@ function drawOverlayScreen(type: 'pause' | 'gameover') {
   const overlayWidth = BOARD_WIDTH;
   const overlayHeight = 5 * BLOCK_HEIGHT;
 
-  const img = type === 'pause' ? pauseImage : gameOverImage;
+  const img = SPRITES?.getMainSprite(type === 'pause' ? 'pause' : 'gameOver');
 
-  if (img && img.complete && img.naturalWidth > 0) {
+  if (img?.complete) {
     // Draw the original extracted image scaled 2x
     ctx.drawImage(img, overlayX, overlayY, overlayWidth, overlayHeight);
   } else {
@@ -1292,20 +976,10 @@ function DrawBlockAt(x: number, y: number, colorIndex: number) {
     return;
   }
   // Use pre-rendered block graphics scaled
-  if (pieceBlockCanvases[colorIndex]) {
-    ctx.drawImage(
-      pieceBlockCanvases[colorIndex],
-      x,
-      y,
-      BLOCK_WIDTH,
-      BLOCK_HEIGHT
-    );
+  const piecesImage = SPRITES?.getPiecesImage(colorIndex);
+  if (piecesImage) {
+    ctx.drawImage(piecesImage, x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
   }
-}
-
-function UpdateScoreDisplay() {
-  // Score is now drawn on canvas in DrawScoreBoxes()
-  // No need to explicitly redraw - MainLoop calls DrawWindow every frame
 }
 
 // ===========================================
@@ -1524,7 +1198,6 @@ function StartNewGame() {
   StartNextPiece();
 
   // Update UI
-  UpdateScoreDisplay();
   getButton('startBtn').textContent = 'Restart';
   getButton('pauseBtn').disabled = false;
   getButton('pauseBtn').textContent = 'Pause';
@@ -1544,16 +1217,12 @@ function StopGame() {
 
   // Stop music
   SOUND?.stopMusic();
-
   SOUND?.playSound('gameOver');
 
   // Update UI
   getButton('startBtn').textContent = 'Begin Game';
   getButton('pauseBtn').disabled = true;
   getSelect('levelSelect').disabled = false;
-
-  // Update score display to ensure it's current
-  UpdateScoreDisplay();
 
   // Check for high score after a short delay
   setTimeout(() => {
@@ -1806,20 +1475,12 @@ function drawAboutPopup() {
     );
   }
 
-  // Interior (black)
-  /*ctx.fillStyle = '#000000';
-  ctx.fillRect(
-    POPUP_X + BORDER_WIDTH,
-    POPUP_Y + BORDER_WIDTH,
-    POPUP_WIDTH - BORDER_WIDTH * 2,
-    POPUP_HEIGHT - BORDER_WIDTH * 2
-  );*/
-
   // Draw about image centered
   const CONTENT_X = POPUP_X + BORDER_WIDTH * SCALE + PADDING * SCALE;
   const CONTENT_Y = POPUP_Y + BORDER_WIDTH * SCALE + PADDING * SCALE;
 
-  if (aboutImage && aboutImage.complete && aboutImage.naturalWidth > 0) {
+  const aboutImage = SPRITES?.getMainSprite('about');
+  if (aboutImage?.complete) {
     ctx.drawImage(aboutImage, CONTENT_X, CONTENT_Y, drawW, drawH);
   }
 }
@@ -1912,11 +1573,8 @@ function drawHighScoresPopup() {
 
   // Draw header image (PICT 259, 220x50, centered at x=109 in content area)
   // Original: SetRect(&r,109,0,329,50); DrawPicture(h,&r);
-  if (
-    highScoresImage &&
-    highScoresImage.complete &&
-    highScoresImage.naturalWidth > 0
-  ) {
+  const highScoresImage = SPRITES?.getMainSprite('highScores');
+  if (highScoresImage?.complete) {
     const headerX = CONTENT_X + 109 * SCALE + 3 * SCALE;
     const headerY = CONTENT_Y + 3 * SCALE;
     ctx.drawImage(highScoresImage, headerX, headerY, 220 * SCALE, 50 * SCALE);
@@ -2096,9 +1754,11 @@ async function init() {
   ctx.fillText('Loading assets...', 20, canvas.height / 2);
 
   // Load original graphics from extracted PNG assets
-  await loadPiecesImage();
-  await initBackgroundPatterns();
-  await loadOverlayImages();
+  SPRITES = await initSprites(
+    currentBackgroundStyle,
+    currentPiecesStyle,
+    SCALE
+  );
 
   // Initialize audio (load sound files)
   try {
@@ -2230,14 +1890,20 @@ async function init() {
 
   // Asset selection listeners
   getSelect('piecesSelect').addEventListener('change', async (e) => {
-    currentPiecesStyle = (e?.target as HTMLSelectElement)?.value;
-    await loadPiecesImage(currentPiecesStyle);
+    const style = (e?.target as HTMLSelectElement)?.value;
+    if (isPieceStyle(style)) {
+      currentPiecesStyle = style;
+    }
+    SPRITES?.setPiecesImage(currentPiecesStyle);
     DrawWindow();
   });
 
   getSelect('backgroundSelect').addEventListener('change', async (e) => {
-    currentBackgroundStyle = (e?.target as HTMLSelectElement)?.value;
-    await loadBackgroundImages(currentBackgroundStyle);
+    const style = (e?.target as HTMLSelectElement)?.value;
+    if (isBGStyle(style)) {
+      currentBackgroundStyle = style;
+    }
+    SPRITES?.setBackgroundImages(currentBackgroundStyle);
     DrawWindow();
   });
 
