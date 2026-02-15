@@ -363,7 +363,7 @@ kbd {
   width: 16px;
   height: 16px;
   /* Piece texture: 112x16 sprite sheet, T block = 7th (index 6) at -84px when scaled to 98x14 */
-  background-image: var(--highscore-piece-url, url('assets/pieces/default/pieces.png'));
+  background-image: var(--highscore-piece-url, url('pieces/default.png'));
   background-size: 112px 16px;
   background-position: -96px 0;
   background-repeat: no-repeat;

@@ -50,13 +50,14 @@ const SOUND_FILES = {
   gameOver: 'sounds/gameover.wav',
   pause: 'sounds/pause.wav',
 };
+export type Sound = keyof typeof SOUND_FILES;
 
 export const initSound = async (style?: MusicStyle) => {
   // Audio
   const audioContext: AudioContext = new window.AudioContext({
     latencyHint: 'interactive',
   });
-  const sounds: Partial<Record<keyof typeof SOUND_FILES, AudioBuffer>> = {};
+  const sounds: Partial<Record<Sound, AudioBuffer>> = {};
 
   // State
   let musicBuffers: (AudioBuffer | null)[] = [];
@@ -200,7 +201,7 @@ export const initSound = async (style?: MusicStyle) => {
     return gSoundOn;
   }
 
-  function playSound(name: keyof typeof sounds) {
+  function playSound(name: Sound) {
     if (!audioContext || !sounds[name] || !gSoundOn) return;
 
     // Resume audio context if suspended (browser autoplay policy)
@@ -223,7 +224,7 @@ export const initSound = async (style?: MusicStyle) => {
 
   async function initAudio(style?: MusicStyle) {
     try {
-      const names = Object.keys(SOUND_FILES) as (keyof typeof SOUND_FILES)[];
+      const names = Object.keys(SOUND_FILES) as Sound[];
 
       // Load all sound files
       for (const name of names) {
