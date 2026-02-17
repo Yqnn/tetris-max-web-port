@@ -32,8 +32,7 @@ const ORIGINAL = {
 export const initDraw = (
   canvas: HTMLCanvasElement,
   scale: number,
-  game: ReturnType<typeof initGame>,
-  sprites: Awaited<ReturnType<typeof initSprites>>
+  game: ReturnType<typeof initGame>
 ) => {
   // Scaled dimensions for rendering
   const BLOCK_WIDTH = ORIGINAL.BLOCK_SIZE * scale;
@@ -479,6 +478,7 @@ export const initDraw = (
   }
 
   const ctx = getContext(canvas);
+  let sprites: Awaited<ReturnType<typeof initSprites>> | null = null;
 
   // Set canvas size to original 500x330 scaled 2x = 1000x660
   canvas.width = ORIGINAL.WINDOW_WIDTH * scale;
@@ -495,7 +495,10 @@ export const initDraw = (
   ctx.font = `${12 * scale}px Geneva, Helvetica, sans-serif`;
   ctx.fillText('Loading assets...', 20, canvas.height / 2);
 
-  return drawWindow;
+  return {
+    drawWindow,
+    setSprites: (s: Awaited<ReturnType<typeof initSprites>>) => (sprites = s),
+  };
 };
 
 function getContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {

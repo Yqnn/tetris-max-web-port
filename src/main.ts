@@ -36,13 +36,14 @@ async function init() {
   let lastFrameTime = 0;
 
   const game = initGame();
-  const sound = await initSound(currentMusicStyle);
+  const draw = initDraw(getCanvas(), SCALE, game);
   const sprites = await initSprites(
     currentBackgroundStyle,
     currentPiecesStyle,
     SCALE
   );
-  const draw = initDraw(getCanvas(), SCALE, game, sprites);
+  draw.setSprites(sprites);
+  const sound = await initSound(currentMusicStyle);
 
   highScores = loadHighScores();
 
@@ -170,7 +171,7 @@ async function init() {
         stopGame();
       }
     }
-    draw?.({
+    draw.drawWindow({
       isShowingHighScores,
       lastHighScoreIndex,
       isShowingWelcomeScreen,
