@@ -25,3 +25,7 @@ __pycache__
 *.njsproj
 *.sln
 *.sw?
+
+# Original sources
+Tetris Max PPC Project
+Tetris_Max_PPC_Project.sit

@@ -9,7 +9,7 @@ import os
 import zlib
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_PATH = os.path.join(SCRIPT_DIR, "../..", "Tetris Max PPC Project")
+BASE_PATH = os.path.join(SCRIPT_DIR, "..", "Tetris Max PPC Project")
 OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "public")
 
 def read_resource_fork(filepath):
@@ -88,30 +88,206 @@ def unpack_packbits(data, pos, expected_bytes):
             pos += count
     return bytes(result[:expected_bytes]), pos
 
+def decode_pict_v1(pict_data, pos, pict_id):
+    """Decode a PICT v1 resource (1-byte opcodes, no alignment)."""
+    pixels = None
+    colors = None
+    img_width = 0
+    img_height = 0
+
+    while pos < len(pict_data):
+        opcode = pict_data[pos]
+        pos += 1
+
+        if opcode == 0x00:  # NOP
+            pass
+        elif opcode == 0x11:  # Version
+            pos += 1
+        elif opcode == 0x01:  # Clip
+            region_size = struct.unpack('>H', pict_data[pos:pos+2])[0]
+            pos += region_size
+        elif opcode == 0x02:  # BkPat
+            pos += 8
+        elif opcode == 0x03:  # TxFont
+            pos += 2
+        elif opcode == 0x04:  # TxFace
+            pos += 1
+        elif opcode == 0x05:  # TxMode
+            pos += 2
+        elif opcode == 0x06:  # SpExtra
+            pos += 4
+        elif opcode == 0x07:  # PnSize
+            pos += 4
+        elif opcode == 0x08:  # PnMode
+            pos += 2
+        elif opcode == 0x09:  # PnPat
+            pos += 8
+        elif opcode == 0x0A:  # FillPat
+            pos += 8
+        elif opcode == 0x0B:  # OvSize
+            pos += 4
+        elif opcode == 0x0C:  # Origin
+            pos += 4
+        elif opcode == 0x0D:  # TxSize
+            pos += 2
+        elif opcode == 0x0E:  # FgColor (v1: 4-byte QuickDraw color constant)
+            pos += 4
+        elif opcode == 0x0F:  # BkColor (v1: 4-byte QuickDraw color constant)
+            pos += 4
+        elif opcode == 0x10:  # TxRatio
+            pos += 8
+        elif opcode == 0x1E:  # DefHilite
+            pass
+        elif opcode == 0x20:  # Line
+            pos += 8
+        elif opcode == 0x21:  # LineFrom
+            pos += 4
+        elif opcode == 0x22:  # ShortLine
+            pos += 6
+        elif opcode == 0x23:  # ShortLineFrom
+            pos += 2
+        elif opcode == 0x28:  # LongText
+            pos += 4
+            text_len = pict_data[pos]
+            pos += 1 + text_len
+        elif opcode == 0x29:  # DHText
+            pos += 1
+            text_len = pict_data[pos]
+            pos += 1 + text_len
+        elif opcode == 0x2A:  # DVText
+            pos += 1
+            text_len = pict_data[pos]
+            pos += 1 + text_len
+        elif opcode == 0x2B:  # DHDVText
+            pos += 2
+            text_len = pict_data[pos]
+            pos += 1 + text_len
+        elif 0x30 <= opcode <= 0x37:  # frameRect, paintRect, etc.
+            pos += 8
+        elif 0x38 <= opcode <= 0x3F:  # frameSameRect, etc.
+            pass
+        elif 0x40 <= opcode <= 0x47:  # frameRRect, etc.
+            pos += 8
+        elif 0x48 <= opcode <= 0x4F:  # frameSameRRect, etc.
+            pass
+        elif 0x50 <= opcode <= 0x57:  # frameOval, etc.
+            pos += 8
+        elif 0x58 <= opcode <= 0x5F:  # frameSameOval, etc.
+            pass
+        elif 0x60 <= opcode <= 0x67:  # frameArc, etc.
+            pos += 12
+        elif 0x68 <= opcode <= 0x6F:  # frameSameArc, etc.
+            pos += 4
+        elif 0x70 <= opcode <= 0x77:  # framePoly, etc.
+            poly_size = struct.unpack('>H', pict_data[pos:pos+2])[0]
+            pos += poly_size
+        elif 0x78 <= opcode <= 0x7F:  # frameSamePoly, etc.
+            pass
+        elif 0x80 <= opcode <= 0x87:  # frameRgn, etc.
+            rgn_size = struct.unpack('>H', pict_data[pos:pos+2])[0]
+            pos += rgn_size
+        elif 0x88 <= opcode <= 0x8F:  # frameSameRgn, etc.
+            pass
+        elif opcode == 0x90:  # BitsRect (v1: uncompressed 1-bit bitmap)
+            result = decode_bits_rect(pict_data, pos, pict_id)
+            if result:
+                pixels, colors, img_width, img_height, pos = result
+        elif opcode == 0x91:  # BitsRgn
+            result = decode_bits_rect(pict_data, pos, pict_id, has_region=True)
+            if result:
+                pixels, colors, img_width, img_height, pos = result
+        elif opcode == 0x98:  # PackBitsRect (v1: PackBits-compressed 1-bit bitmap)
+            result = decode_packbits_rect_v1(pict_data, pos, pict_id)
+            if result:
+                pixels, colors, img_width, img_height, pos = result
+        elif opcode == 0x99:  # PackBitsRgn
+            result = decode_packbits_rect_v1(pict_data, pos, pict_id, has_region=True)
+            if result:
+                pixels, colors, img_width, img_height, pos = result
+        elif opcode == 0xFF:  # EndPic
+            break
+        else:
+            break
+
+    return pixels, colors, img_width, img_height
+
+
+def decode_packbits_rect_v1(data, pos, pict_id, has_region=False):
+    """Decode PICT v1 PackBitsRect: PackBits-compressed 1-bit bitmap."""
+    rowbytes = struct.unpack('>H', data[pos:pos+2])[0]
+    bounds_top = struct.unpack('>h', data[pos+2:pos+4])[0]
+    bounds_left = struct.unpack('>h', data[pos+4:pos+6])[0]
+    bounds_bottom = struct.unpack('>h', data[pos+6:pos+8])[0]
+    bounds_right = struct.unpack('>h', data[pos+8:pos+10])[0]
+    pos += 10
+
+    width = bounds_right - bounds_left
+    height = bounds_bottom - bounds_top
+
+    # srcRect, dstRect, mode
+    pos += 8 + 8 + 2
+
+    if has_region:
+        rgn_size = struct.unpack('>H', data[pos:pos+2])[0]
+        pos += rgn_size
+
+    pixels = []
+    colors = [(255, 255, 255), (0, 0, 0)]
+    use_2byte_len = rowbytes > 250
+
+    for row in range(height):
+        if use_2byte_len:
+            row_len = struct.unpack('>H', data[pos:pos+2])[0]
+            pos += 2
+        else:
+            row_len = data[pos]
+            pos += 1
+
+        row_data, _ = unpack_packbits(data, pos, rowbytes)
+        pos += row_len
+
+        row_pixels = []
+        for x in range(width):
+            byte_idx = x // 8
+            bit_idx = 7 - (x % 8)
+            if byte_idx < len(row_data):
+                pixel = (row_data[byte_idx] >> bit_idx) & 1
+                row_pixels.append(pixel)
+            else:
+                row_pixels.append(0)
+        pixels.append(row_pixels)
+
+    return pixels, colors, width, height, pos
+
+
 def decode_pict(pict_data, pict_id):
     """Decode a PICT resource with detailed opcode parsing."""
-    
+
     pos = 0
     # Size word (may not be accurate for v2)
     size = struct.unpack('>H', pict_data[pos:pos+2])[0]
     pos += 2
-    
+
     # Frame rectangle
     frame_top = struct.unpack('>h', pict_data[pos:pos+2])[0]
     frame_left = struct.unpack('>h', pict_data[pos+2:pos+4])[0]
     frame_bottom = struct.unpack('>h', pict_data[pos+4:pos+6])[0]
     frame_right = struct.unpack('>h', pict_data[pos+6:pos+8])[0]
     pos += 8
-    
+
     width = frame_right - frame_left
     height = frame_bottom - frame_top
-    
+
+    # Detect PICT version: v1 starts with opcode byte 0x11 (picVersion)
+    if pos < len(pict_data) and pict_data[pos] == 0x11:
+        return decode_pict_v1(pict_data, pos, pict_id)
+
     pixels = None
     colors = None
     img_width = width
     img_height = height
-    
-    # Parse opcodes
+
+    # Parse opcodes (PICT v2: 2-byte opcodes, word-aligned)
     while pos < len(pict_data) - 2:
         # Align to word boundary for v2
         if pos % 2 == 1:
@@ -653,26 +829,40 @@ def save_png_indexed(filename, width, height, pixels, colors):
 def main():
     app_path = os.path.join(BASE_PATH, "Tetris Max 2011")
     output_dir = os.path.join(OUTPUT_PATH, "sprites")
-    
+
     data = read_resource_fork(app_path)
-    
+
     resources = parse_resource_map(data)
-    
+
     if 'PICT' not in resources:
         print("No PICT resources found!")
         return
-    
-    print(f"Found PICT resources: {sorted(resources['PICT'].keys())}")
-    
 
-    pict_ids = {
+    print(f"Found PICT resources: {sorted(resources['PICT'].keys())}")
+
+    # Known names for identified assets
+    pict_names = {
+        128: "popup_triangle.png",
         129: "about.png",
         130: "default_pieces.png",
         131: "restore.png",
+        132: "arrow_left.png",
+        133: "arrow_down.png",
+        134: "arrow_right.png",
+        135: "default_pieces_bw.png",
+        136: "ruler.png",
         137: "about_bw.png",
+        138: "gameover_bw.png",
+        139: "paused_bw.png",
+        140: "welcome_bw.png",
+        141: "frame_bw.png",
+        142: "t_piece_bw.png",
         143: "restore_reversed.png",
+        144: "turn_clockwise.png",
+        145: "arrow_down_dashed.png",
         146: "t_piece.png",
         148: "shareware_notice.png",
+        149: "shareware_notice_bw.png",
         150: "default_pieces_lg.png",
         151: "welcome_lg.png",
         152: "gameover_lg.png",
@@ -684,20 +874,20 @@ def main():
         260: "score_frame.png",
         261: "level_frame.png",
         262: "rows_frame.png",
+        280: "highscores_bw.png",
+        300: "turn_counterclockwise.png",
     }
-    
-    for pict_id, filename in pict_ids.items():
-        if pict_id in resources['PICT']:
-            pict_data = resources['PICT'][pict_id]
-            pixels, colors, width, height = decode_pict(pict_data, pict_id)
-            
-            if pixels:
-                output_path = os.path.join(output_dir, filename)
-                save_png_indexed(output_path, width, height, pixels, colors)
-            else:
-                print(f"Failed to decode PICT {pict_id}")
+
+    for pict_id in sorted(resources['PICT'].keys()):
+        pict_data = resources['PICT'][pict_id]
+        pixels, colors, width, height = decode_pict(pict_data, pict_id)
+
+        if pixels:
+            filename = pict_names.get(pict_id, f"pict_{pict_id}.png")
+            output_path = os.path.join(output_dir, filename)
+            save_png_indexed(output_path, width, height, pixels, colors)
         else:
-            print(f"PICT {pict_id} not found")
+            print(f"Failed to decode PICT {pict_id}")
 
 if __name__ == "__main__":
     main()

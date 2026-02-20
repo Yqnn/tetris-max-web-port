@@ -9,7 +9,7 @@ import wave
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_PATH = os.path.join(SCRIPT_DIR, "../..", "Tetris Max PPC Project")
+BASE_PATH = os.path.join(SCRIPT_DIR, "..", "Tetris Max PPC Project")
 OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "public")
 
 def parse_resource_fork(filepath):

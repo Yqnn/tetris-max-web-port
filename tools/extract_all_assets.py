@@ -9,7 +9,7 @@ import subprocess
 from PIL import Image
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_PATH = os.path.join(SCRIPT_DIR, "../..", "Tetris Max PPC Project", "Tetris Max Data")
+BASE_PATH = os.path.join(SCRIPT_DIR, "..", "Tetris Max PPC Project", "Tetris Max Data")
 OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "public")
 
 PNG_COMPRESS_LEVEL = 9  # Match ref (max compression, smaller files)
