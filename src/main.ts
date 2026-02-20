@@ -55,6 +55,10 @@ async function init() {
 
   initHandlers({
     onStart: () => {
+      if (isGameInProgress) {
+        stopGame();
+        return;
+      }
       game.start(currentLevel);
       sound?.startMusic(currentMusicStyle);
       isShowingHighScores = false;

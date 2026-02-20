@@ -46,20 +46,15 @@ body {
 /* Controls panel on the right */
 .controls-panel {
   background: #FFFFFF;
+  color: #000000;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   min-width: 180px;
   position: relative;
-  
-  /* Mac OS 9 3D beveled border - same as high score popup */
-  /* Outer black border */
+  font-size: 11px;
   border: 1px solid #000000;
-  /* Drop shadow */
   box-shadow: 1px 1px 0 #000000;
-  
-  /* Inner 3D effect using pseudo-elements */
 }
 
 .controls-panel::before {
@@ -92,27 +87,17 @@ body {
 }
 
 /* First row: buttons */
-.buttons-row {
+.controls-row {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 4px;
-  margin: -4px;
 }
-
-/* Second row: select menus */
-.selects-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #999999;
+.controls-row:not(:last-child) {
+  border-bottom: 1px solid #999999;
+  padding-bottom: 12px;
 }
-
-.settings-section {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.controls-row:not(:first-child) {
+  padding-top: 12px;
 }
 
 /* Mac OS 9 style button */
@@ -205,7 +190,6 @@ body {
 
 .settings-section label {
   font-size: 11px;
-  color: #000000;
   font-family: "Charcoal", "Chicago", Geneva, Helvetica, Arial, sans-serif;
 }
 
@@ -275,32 +259,13 @@ body {
       -3px 0 0 0 #aaaaaa;
 }
 
-.controls-help {
-  border-top: 1px solid #999999;
-  padding-top: 10px;
-  margin-top: 5px;
-}
-
 .controls-help h3 {
-  font-size: 11px;
-  color: #000000;
   margin-bottom: 0;
   font-weight: normal;
 }
 
-.controls-help table {
-  font-size: 11px;
-  width: 100%;
-}
-
 .controls-help td {
   padding: 2px 4px;
-  color: #333333;
-}
-
-.controls-help td:first-child {
-  color: #000000;
-  white-space: nowrap;
 }
 
 kbd {

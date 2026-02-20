@@ -40,7 +40,12 @@ export function getCanvas(): HTMLCanvasElement {
 
 export const setState = (state: 'running' | 'ready' | 'paused') => {
   getButton('startBtn').textContent =
-    state === 'ready' ? 'Begin Game' : 'Restart';
+    state === 'ready' ? 'Begin Game' : 'Abort';
+  if (state === 'ready') {
+    getButton('startBtn').classList.add('primary');
+  } else {
+    getButton('startBtn').classList.remove('primary');
+  }
   getButton('pauseBtn').disabled = state === 'ready';
   getButton('pauseBtn').textContent = state === 'paused' ? 'Resume' : 'Pause';
   getSelect('levelSelect').disabled = state !== 'ready';

@@ -150,11 +150,7 @@ export const initDraw = (
     ctx.fillRect(BOARD_X, BOARD_Y, BOARD_WIDTH, BOARD_HEIGHT);
 
     drawBoard();
-    if (
-      game.getCurrentPiece() &&
-      isGameInProgress &&
-      !game.getRowsToClear().length
-    ) {
+    if (game.getCurrentPiece() && !game.getRowsToClear().length) {
       drawPiece();
     }
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -13,15 +13,15 @@
       </div>
 
       <div class="controls-panel">
-        <div class="buttons-row">
+        <div class="controls-row">
           <button id="startBtn" class="game-btn primary">Begin Game</button>
           <button id="pauseBtn" class="game-btn" disabled>Pause</button>
-          <button id="soundBtn" class="game-btn">Sound Effects: ON</button>
-          <button id="musicBtn" class="game-btn">Music: ON</button>
           <button id="highScoresBtn" class="game-btn">High Scores</button>
           <button id="aboutBtn" class="game-btn">About...</button>
         </div>
-        <div class="selects-row">
+        <div class="controls-row">
+          <button id="soundBtn" class="game-btn">Sound Effects: ON</button>
+          <button id="musicBtn" class="game-btn">Music: ON</button>
           <div class="settings-section">
             <label for="levelSelect">Starting Level:</label>
             <div class="select-wrap">
@@ -68,38 +68,40 @@
             </div>
           </div>
         </div>
-        <div class="controls-help">
-          <h3>Controls:</h3>
-          <table>
-            <tr>
-              <td><kbd>←</kbd> / <kbd>J</kbd></td>
-              <td>Move Left</td>
-            </tr>
-            <tr>
-              <td><kbd>→</kbd> / <kbd>L</kbd></td>
-              <td>Move Right</td>
-            </tr>
-            <tr>
-              <td><kbd>↓</kbd> / <kbd>Space</kbd></td>
-              <td>Hard Drop</td>
-            </tr>
-            <tr>
-              <td><kbd>↑</kbd> / <kbd>I</kbd></td>
-              <td>Rotate CW</td>
-            </tr>
-            <tr>
-              <td><kbd>K</kbd></td>
-              <td>Rotate CCW</td>
-            </tr>
-            <tr>
-              <td><kbd>M</kbd></td>
-              <td>Soft Drop</td>
-            </tr>
-            <tr>
-              <td><kbd>P</kbd></td>
-              <td>Pause</td>
-            </tr>
-          </table>
+        <div class="controls-row">
+          <div class="controls-help">
+            <span>Controls:</span>
+            <table>
+              <tr>
+                <td><kbd>←</kbd> / <kbd>J</kbd></td>
+                <td>Move Left</td>
+              </tr>
+              <tr>
+                <td><kbd>→</kbd> / <kbd>L</kbd></td>
+                <td>Move Right</td>
+              </tr>
+              <tr>
+                <td><kbd>↓</kbd> / <kbd>Space</kbd></td>
+                <td>Hard Drop</td>
+              </tr>
+              <tr>
+                <td><kbd>↑</kbd> / <kbd>I</kbd></td>
+                <td>Rotate CW</td>
+              </tr>
+              <tr>
+                <td><kbd>K</kbd></td>
+                <td>Rotate CCW</td>
+              </tr>
+              <tr>
+                <td><kbd>M</kbd></td>
+                <td>Soft Drop</td>
+              </tr>
+              <tr>
+                <td><kbd>P</kbd></td>
+                <td>Pause</td>
+              </tr>
+            </table>
+          </div>
         </div>
       </div>
     </div>
