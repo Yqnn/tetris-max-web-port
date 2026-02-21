@@ -1,3 +1,5 @@
+import type { DisplayMode } from './display';
+import { isDisplayMode } from './display';
 import type { Level } from './game.constants';
 import type { MusicStyle } from './sound';
 import {
@@ -8,7 +10,12 @@ import {
 } from './sprites';
 
 function getSelect(
-  id: 'levelSelect' | 'piecesSelect' | 'backgroundSelect' | 'musicSelect'
+  id:
+    | 'levelSelect'
+    | 'piecesSelect'
+    | 'backgroundSelect'
+    | 'musicSelect'
+    | 'displaySelect'
 ): HTMLSelectElement {
   return document.getElementById(id) as HTMLSelectElement;
 }
@@ -112,6 +119,7 @@ export const initHandlers = ({
   onSelectPieces,
   onSelectBackground,
   onSelectMusic,
+  onSelectDisplay,
 }: {
   onPause: () => void;
   onKeyUp: (key: string) => void;
@@ -126,6 +134,7 @@ export const initHandlers = ({
   onSelectPieces: (pieces: PieceStyle) => void;
   onSelectBackground: (background: BGStyle) => void;
   onSelectMusic: (music: MusicStyle) => void;
+  onSelectDisplay: (mode: DisplayMode) => void;
 }) => {
   // Event listeners
   document.addEventListener('keydown', (e) => {
@@ -199,6 +208,12 @@ export const initHandlers = ({
     const style = (e?.target as HTMLSelectElement)?.value;
     if (style === 'peter_wagner' || style === 'animal_instinct') {
       onSelectMusic(style);
+    }
+  });
+  getSelect('displaySelect').addEventListener('change', (e) => {
+    const mode = (e?.target as HTMLSelectElement)?.value;
+    if (isDisplayMode(mode)) {
+      onSelectDisplay(mode);
     }
   });
 };

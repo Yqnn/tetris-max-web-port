@@ -2,6 +2,7 @@ import { BOARD_COLS, BOARD_ROWS } from './game.constants';
 import type { initGame } from './game';
 import type { initSprites } from './sprites';
 import { HIGH_SCORE_COUNT, type HighScore } from './high-scores';
+import type { LayoutConfig } from './display';
 
 export type DrawWindowParams = {
   isShowingHighScores: boolean;
@@ -13,43 +14,49 @@ export type DrawWindowParams = {
   highScores: HighScore[];
 };
 
-const ORIGINAL = {
-  WINDOW_WIDTH: 500,
-  WINDOW_HEIGHT: 330,
-  BLOCK_SIZE: 16,
-  BOARD_X: 170,
-  BOARD_Y: 5,
-  NEXT_X: 24, // gBoardXOffset + gNextXOffset - 6*gBlockWidth = 170 + (-50) - 96
-  NEXT_Y: 4, // BOARD_YOFFSET - 1
-  NEXT_SIZE: 96, // 6 * 16
-  SCORE_X: 380, // gBoardXOffset + gBoardWidth + 40 + 10 = 170 + 160 + 50
-  SCORE_Y: 4,
-  SCORE_WIDTH: 96,
-  SCORE_HEIGHT: 60,
-  SCORE_SPACING: 20,
-};
-
 export const initDraw = (
   canvas: HTMLCanvasElement,
   scale: number,
-  game: ReturnType<typeof initGame>
+  game: ReturnType<typeof initGame>,
+  initialLayout: LayoutConfig
 ) => {
-  // Scaled dimensions for rendering
-  const BLOCK_WIDTH = ORIGINAL.BLOCK_SIZE * scale;
-  const BLOCK_HEIGHT = ORIGINAL.BLOCK_SIZE * scale;
+  // Mutable scaled dimensions for rendering
+  let BLOCK_WIDTH = 0,
+    BLOCK_HEIGHT = 0,
+    // Mutable scaled positions
+    BOARD_X = 0,
+    BOARD_Y = 0,
+    BOARD_WIDTH = 0,
+    BOARD_HEIGHT = 0,
+    NEXT_X = 0,
+    NEXT_Y = 0,
+    NEXT_SIZE = 0,
+    SCORE_X = 0,
+    SCORE_Y = 0,
+    SCORE_HEIGHT = 0,
+    SCORE_SPACING = 0;
 
-  // Scaled positions
-  const BOARD_X = ORIGINAL.BOARD_X * scale;
-  const BOARD_Y = ORIGINAL.BOARD_Y * scale;
-  const BOARD_WIDTH = BOARD_COLS * BLOCK_WIDTH;
-  const BOARD_HEIGHT = BOARD_ROWS * BLOCK_HEIGHT;
-  const NEXT_X = ORIGINAL.NEXT_X * scale;
-  const NEXT_Y = ORIGINAL.NEXT_Y * scale;
-  const NEXT_SIZE = ORIGINAL.NEXT_SIZE * scale;
-  const SCORE_X = ORIGINAL.SCORE_X * scale;
-  const SCORE_Y = ORIGINAL.SCORE_Y * scale;
-  const SCORE_HEIGHT = ORIGINAL.SCORE_HEIGHT * scale;
-  const SCORE_SPACING = ORIGINAL.SCORE_SPACING * scale;
+  function applyLayout(layout: LayoutConfig) {
+    BLOCK_WIDTH = layout.BLOCK_SIZE * scale;
+    BLOCK_HEIGHT = layout.BLOCK_SIZE * scale;
+    BOARD_X = layout.BOARD_X * scale;
+    BOARD_Y = layout.BOARD_Y * scale;
+    BOARD_WIDTH = BOARD_COLS * BLOCK_WIDTH;
+    BOARD_HEIGHT = BOARD_ROWS * BLOCK_HEIGHT;
+    NEXT_X = layout.NEXT_X * scale;
+    NEXT_Y = layout.NEXT_Y * scale;
+    NEXT_SIZE = layout.NEXT_SIZE * scale;
+    SCORE_X = layout.SCORE_X * scale;
+    SCORE_Y = layout.SCORE_Y * scale;
+    SCORE_HEIGHT = layout.SCORE_HEIGHT * scale;
+    SCORE_SPACING = layout.SCORE_SPACING * scale;
+
+    canvas.width = layout.WINDOW_WIDTH * scale;
+    canvas.height = layout.WINDOW_HEIGHT * scale;
+
+    // Browsers reset context state on canvas resize
+    ctx.imageSmoothingEnabled = false;
+  }
 
   function drawClearingAnimation() {
     ctx.fillStyle = 'rgb(255, 255, 0)';
@@ -476,13 +483,7 @@ export const initDraw = (
   const ctx = getContext(canvas);
   let sprites: Awaited<ReturnType<typeof initSprites>> | null = null;
 
-  // Set canvas size to original 500x330 scaled 2x = 1000x660
-  canvas.width = ORIGINAL.WINDOW_WIDTH * scale;
-  canvas.height = ORIGINAL.WINDOW_HEIGHT * scale;
-
-  // Disable image smoothing for pixel-perfect scaling (crisp retro look)
-  // Must be set AFTER canvas resize as some browsers reset this property
-  ctx.imageSmoothingEnabled = false;
+  applyLayout(initialLayout);
 
   // Show loading message
   ctx.fillStyle = '#000000';
@@ -494,6 +495,7 @@ export const initDraw = (
   return {
     drawWindow,
     setSprites: (s: Awaited<ReturnType<typeof initSprites>>) => (sprites = s),
+    setLayout: applyLayout,
   };
 };
 

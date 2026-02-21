@@ -9,6 +9,7 @@ import { getCanvas, initHandlers, promptPlayerName, setState } from './ui';
 import type { Level } from './game.constants';
 import { addHighScore, isHighScore, loadHighScores } from './high-scores';
 import type { HighScore } from './high-scores';
+import { getLayout, WINDOW_LAYOUT, type DisplayMode } from './display';
 
 /**
  * Tetris Max - Accurate Web Port
@@ -25,6 +26,7 @@ async function init() {
   let currentPiecesStyle: PieceStyle = 'default';
   let currentBackgroundStyle: BGStyle = 'default';
   let currentMusicStyle: MusicStyle = 'peter_wagner';
+  let currentDisplayMode: DisplayMode = 'window';
   let currentLevel: Level = 1;
   let highScores: HighScore[] = []; // Array of {name, score, rows, date}
   let lastHighScoreIndex = -1; // Index of player's latest high score entry
@@ -36,11 +38,12 @@ async function init() {
   let lastFrameTime = 0;
 
   const game = initGame();
-  const draw = initDraw(getCanvas(), SCALE, game);
+  const draw = initDraw(getCanvas(), SCALE, game, WINDOW_LAYOUT);
   const sprites = await initSprites(
     currentBackgroundStyle,
     currentPiecesStyle,
-    SCALE
+    SCALE,
+    currentDisplayMode
   );
   draw.setSprites(sprites);
   const sound = await initSound(currentMusicStyle);
@@ -140,6 +143,11 @@ async function init() {
       if (wasPlaying && isGameInProgress && !isGamePaused) {
         sound?.startMusic(currentMusicStyle);
       }
+    },
+    onSelectDisplay: async (mode: DisplayMode) => {
+      currentDisplayMode = mode;
+      draw.setLayout(getLayout(mode));
+      await sprites.setDisplayMode(mode, currentPiecesStyle);
     },
   });
 

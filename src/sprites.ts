@@ -1,3 +1,5 @@
+import type { DisplayMode } from './display';
+
 const SPRITES = {
   highScores: 'sprites/highscores.png',
   about: 'sprites/about.png',
@@ -10,6 +12,13 @@ const SPRITES = {
 };
 
 export type SpriteKey = keyof typeof SPRITES;
+
+const LG_SPRITES: Partial<Record<SpriteKey, string>> = {
+  ...SPRITES,
+  gameOver: 'sprites/gameover_lg.png',
+  pause: 'sprites/pause_lg.png',
+  welcome: 'sprites/welcome_lg.png',
+};
 
 const BACKGROUND_FILES = [
   'level01.png',
@@ -26,6 +35,7 @@ const BACKGROUND_FILES = [
 
 // Pre-rendered piece block images (16x16 canvas for each color)
 const ORIGINAL_BLOCK = 16;
+const FULLSCREEN_BLOCK = 22;
 
 export const BG_STYLES = ['default', 'pot_luck'];
 export type BGStyle = (typeof BG_STYLES)[number];
@@ -40,10 +50,12 @@ export const isBGStyle = (style: string): style is BGStyle => {
   return BG_STYLES.includes(style as BGStyle);
 };
 
-const initMainSprites = async (): Promise<
-  Record<SpriteKey, HTMLImageElement>
-> => {
-  const promises = Object.entries(SPRITES).map(([id, sprite]) => {
+const initMainSprites = async (
+  displayMode: DisplayMode
+): Promise<Record<SpriteKey, HTMLImageElement>> => {
+  const promises = Object.entries(
+    displayMode === 'fullscreen' ? LG_SPRITES : SPRITES
+  ).map(([id, sprite]) => {
     return new Promise<[string, HTMLImageElement]>((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve([id, image]);
@@ -96,15 +108,23 @@ const initBackgroundImages = async (
 
 const initPiecesImage = async (
   pieceStyle: PieceStyle,
-  scale: number
+  scale: number,
+  displayMode: DisplayMode
 ): Promise<HTMLCanvasElement[]> => {
+  // For default pieces in fullscreen, use native _lg sprite (22px blocks)
+  const isLgPieces = displayMode === 'fullscreen' && pieceStyle === 'default';
+  const srcFile = isLgPieces
+    ? 'sprites/default_pieces_lg.png'
+    : `pieces/${pieceStyle}.png`;
+  const srcBlockSize = isLgPieces ? FULLSCREEN_BLOCK : ORIGINAL_BLOCK;
+
   const promises = [...new Array(8)].map((_, i) => {
     return new Promise<HTMLCanvasElement>((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const blockCanvas = document.createElement('canvas');
-        blockCanvas.width = ORIGINAL_BLOCK * scale;
-        blockCanvas.height = ORIGINAL_BLOCK * scale;
+        blockCanvas.width = srcBlockSize * scale;
+        blockCanvas.height = srcBlockSize * scale;
         const blockCtx = blockCanvas.getContext('2d');
         if (!blockCtx) {
           reject(new Error(`Could not get context for piece ${i}`));
@@ -113,18 +133,19 @@ const initPiecesImage = async (
         blockCtx.imageSmoothingEnabled = false;
         blockCtx.drawImage(
           img,
-          i * ORIGINAL_BLOCK,
-          0, // Source x, y (original 16x16 positions)
-          ORIGINAL_BLOCK,
-          ORIGINAL_BLOCK, // Source width, height
+          i * srcBlockSize,
           0,
-          0, // Dest x, y
-          ORIGINAL_BLOCK * scale,
-          ORIGINAL_BLOCK * scale // Dest scaled size
+          srcBlockSize,
+          srcBlockSize,
+          0,
+          0,
+          srcBlockSize * scale,
+          srcBlockSize * scale
         );
         resolve(blockCanvas);
       };
-      img.src = `pieces/${pieceStyle}.png`;
+      img.onerror = () => reject(new Error(`Could not load pieces ${srcFile}`));
+      img.src = srcFile;
     });
   });
   return Promise.all(promises);
@@ -133,13 +154,15 @@ const initPiecesImage = async (
 export const initSprites = async (
   backgroundStyle: BGStyle,
   pieceStyle: PieceStyle,
-  scale: number
+  scale: number,
+  displayMode: DisplayMode = 'window'
 ) => {
   const [mainSprites, backgroundImages, piecesImages] = await Promise.all([
-    initMainSprites(),
+    initMainSprites(displayMode),
     initBackgroundImages(backgroundStyle, scale),
-    initPiecesImage(pieceStyle, scale),
+    initPiecesImage(pieceStyle, scale, displayMode),
   ]);
+  let currentDisplayMode = displayMode;
   return {
     getMainSprite: (name: SpriteKey) => mainSprites[name],
     getBackgroundImage: (index: number) => backgroundImages[index],
@@ -155,8 +178,19 @@ export const initSprites = async (
       piecesImages.splice(
         0,
         piecesImages.length,
-        ...(await initPiecesImage(pieceStyle, scale))
+        ...(await initPiecesImage(pieceStyle, scale, currentDisplayMode))
       );
+    },
+    setDisplayMode: async (mode: DisplayMode, pStyle: PieceStyle) => {
+      currentDisplayMode = mode;
+      const [newMain, newPieces] = await Promise.all([
+        initMainSprites(mode),
+        initPiecesImage(pStyle, scale, currentDisplayMode),
+      ]);
+      for (const key of Object.keys(newMain) as SpriteKey[]) {
+        mainSprites[key] = newMain[key];
+      }
+      piecesImages.splice(0, piecesImages.length, ...newPieces);
     },
   };
 };
