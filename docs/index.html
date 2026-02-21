@@ -4,12 +4,23 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Tetris Max</title>
+    <!-- iOS Safari: prevent pinch-zoom (viewport meta is ignored since iOS 10) -->
+    <script>
+      (function () {
+        function preventZoom(e) {
+          e.preventDefault();
+        }
+        document.addEventListener('gesturestart', preventZoom, { passive: false });
+        document.addEventListener('gesturechange', preventZoom, { passive: false });
+        document.addEventListener('gestureend', preventZoom, { passive: false });
+      })();
+    </script>
     <link rel="icon" href="/tetris-max-web-port/favicon.png" type="image/png" />
-    <script type="module" crossorigin src="/tetris-max-web-port/assets/index-tCniUDa4.js"></script>
-    <link rel="stylesheet" crossorigin href="/tetris-max-web-port/assets/index-BL6KMabe.css">
+    <script type="module" crossorigin src="/tetris-max-web-port/assets/index-CoSL3Xiz.js"></script>
+    <link rel="stylesheet" crossorigin href="/tetris-max-web-port/assets/index-BMmu3sJs.css">
   </head>
   <body>
     <div class="main-container">

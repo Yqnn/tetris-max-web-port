@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Charcoal';
-  src: url('../public/fonts/charcoal-regular.ttf') format('truetype');
+  src: url('/fonts/charcoal-regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,15 +14,30 @@
   user-select: none;
 }
 
+/* Prevent zoom/scroll on iOS Safari (viewport meta is ignored since iOS 10) */
+html {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+  touch-action: manipulation;
+}
 body {
   font-family: 'Charcoal', Geneva, 'Lucida Grande', Helvetica, Arial, sans-serif;
   background: #000000;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
   color: #fff;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 
@@ -417,13 +432,13 @@ kbd {
 .highscore-modal-tetromino {
   width: 39px;
   height: 54px;
-  background-image: url('../public/sprites/t_piece.png');
+  background-image: url('/sprites/t_piece.png');
 }
 
 body.bw .highscore-modal-tetromino {
   width: 35px;
   height: 51px;
-  background-image: url('../public/sprites/t_piece_bw.png');
+  background-image: url('/sprites/t_piece_bw.png');
 }
 
 
@@ -497,32 +512,32 @@ body.bw .highscore-modal-tetromino {
   }
 
   #mobileLeft {
-    background-image: url('../public/sprites/arrow_left.png');
+    background-image: url('/sprites/arrow_left.png');
     left: 10px;
     bottom: 120px;
   }
   #mobileRight {
-    background-image: url('../public/sprites/arrow_right.png');
+    background-image: url('/sprites/arrow_right.png');
     left: 110px;
     bottom: 120px;
   }
   #mobileSoftDrop {
-    background-image: url('../public/sprites/arrow_down.png');
+    background-image: url('/sprites/arrow_down.png');
     left: 60px;
     bottom: 70px;
   }
   #mobileHardDrop {
-    background-image: url('../public/sprites/arrow_down_dashed.png');
+    background-image: url('/sprites/arrow_down_dashed.png');
     left: 60px;
     bottom: 170px;
   }
   #mobileRotateCcw {
-    background-image: url('../public/sprites/turn_counterclockwise.png');
+    background-image: url('/sprites/turn_counterclockwise.png');
     right: 10px;
     bottom: 150px;
   }
   #mobileRotateCw {
-    background-image: url('../public/sprites/turn_clockwise.png');
+    background-image: url('/sprites/turn_clockwise.png');
     right: 70px;
     bottom: 90px;
   }
