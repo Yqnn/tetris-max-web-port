@@ -43,6 +43,34 @@ body {
   image-rendering: crisp-edges;
 }
 
+.controls-panel-wrapper {
+  position: absolute;
+  right: 8px;
+  overflow-x: hidden;
+}
+
+.controls-panel-wrapper.collapsed .controls-panel {
+  transform: translateX(calc(100% + 20px));
+  pointer-events: none;
+}
+
+.controls-panel-wrapper.collapsed:hover .controls-panel {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.controls-panel-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
 /* Controls panel on the right */
 .controls-panel {
   background: #FFFFFF;
@@ -55,6 +83,7 @@ body {
   font-size: 11px;
   border: 1px solid #000000;
   box-shadow: 1px 1px 0 #000000;
+  transition: transform 0.2s ease;
 }
 
 .controls-panel::before {

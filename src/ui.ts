@@ -30,7 +30,9 @@ function getInput(id: 'highScoreNameInput'): HTMLInputElement {
   return document.getElementById(id) as HTMLInputElement;
 }
 
-function getElement(id: 'highScoreModalOverlay'): HTMLElement {
+function getElement(
+  id: 'highScoreModalOverlay' | 'controlsPanelWrapper'
+): HTMLElement {
   return document.getElementById(id) as HTMLElement;
 }
 
@@ -49,6 +51,12 @@ export const setState = (state: 'running' | 'ready' | 'paused') => {
   getButton('pauseBtn').disabled = state === 'ready';
   getButton('pauseBtn').textContent = state === 'paused' ? 'Resume' : 'Pause';
   getSelect('levelSelect').disabled = state !== 'ready';
+
+  if (state === 'running') {
+    getElement('controlsPanelWrapper').classList.add('collapsed');
+  } else {
+    getElement('controlsPanelWrapper').classList.remove('collapsed');
+  }
 };
 
 export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
