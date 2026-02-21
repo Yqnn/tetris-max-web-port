@@ -13,8 +13,8 @@
       </div>
     </div>
 
-    <div class="controls-panel-wrapper" id="controlsPanelWrapper">
-      <div class="controls-panel">
+    <div class="side-panel-wrapper" id="sidePanelWrapper">
+      <div class="side-panel">
         <div class="controls-row">
           <button id="startBtn" class="game-btn primary">Begin Game</button>
           <button id="pauseBtn" class="game-btn" disabled>Pause</button>
@@ -118,14 +118,10 @@
       </div>
     </div>
 
-    <!-- High score name entry modal (same look as controls-panel) -->
     <div id="highScoreModalOverlay" class="highscore-modal-overlay" hidden>
-      <div id="highScoreModal" class="highscore-modal controls-panel">
+      <div id="highScoreModal" class="highscore-modal popup-window">
         <div class="highscore-modal-content">
-          <div class="highscore-modal-tetromino" aria-hidden="true">
-            <span class="block"></span><span class="block"></span
-            ><span class="block"></span><span class="block"></span>
-          </div>
+          <div class="highscore-modal-tetromino"></div>
           <div class="highscore-modal-text">
             <p>
               Congratulations! You've set a new high score! Enter your name:
@@ -137,6 +133,7 @@
               maxlength="20"
               value="Player"
               placeholder="Player"
+              data-1p-ignore
             />
             <button
               type="button"

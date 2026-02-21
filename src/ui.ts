@@ -38,7 +38,7 @@ function getInput(id: 'highScoreNameInput'): HTMLInputElement {
 }
 
 function getElement(
-  id: 'highScoreModalOverlay' | 'controlsPanelWrapper'
+  id: 'highScoreModalOverlay' | 'sidePanelWrapper'
 ): HTMLElement {
   return document.getElementById(id) as HTMLElement;
 }
@@ -50,25 +50,22 @@ export function getCanvas(): HTMLCanvasElement {
 export const setState = (state: 'running' | 'ready' | 'paused') => {
   getButton('startBtn').textContent =
     state === 'ready' ? 'Begin Game' : 'Abort';
-  if (state === 'ready') {
-    getButton('startBtn').classList.add('primary');
-  } else {
-    getButton('startBtn').classList.remove('primary');
-  }
+  getButton('startBtn').classList.toggle('primary', state === 'ready');
   getButton('pauseBtn').disabled = state === 'ready';
+  getButton('pauseBtn').classList.toggle('primary', state === 'paused');
   getButton('pauseBtn').textContent = state === 'paused' ? 'Resume' : 'Pause';
   getSelect('levelSelect').disabled = state !== 'ready';
 
+  getElement('sidePanelWrapper').classList.toggle(
+    'collapsed',
+    state === 'running'
+  );
   if (state === 'running') {
-    getElement('controlsPanelWrapper').classList.add('collapsed');
     setTimeout(() => {
-      getElement('controlsPanelWrapper').classList.add('collapsed-interactive');
+      getElement('sidePanelWrapper').classList.add('collapsed-interactive');
     }, 300);
   } else {
-    getElement('controlsPanelWrapper').classList.remove('collapsed');
-    getElement('controlsPanelWrapper').classList.remove(
-      'collapsed-interactive'
-    );
+    getElement('sidePanelWrapper').classList.remove('collapsed-interactive');
   }
 };
 
@@ -119,6 +116,7 @@ export const setDisplayModeUI = (mode: DisplayMode) => {
     getSelect('piecesSelect').value = 'default';
     getSelect('backgroundSelect').value = 'default';
   }
+  document.body.classList.toggle('bw', isBw);
 };
 
 export const initHandlers = ({
@@ -188,7 +186,10 @@ export const initHandlers = ({
   });
 
   getCanvas().addEventListener('click', onClick);
-  getButton('startBtn').addEventListener('click', onStart);
+  getButton('startBtn').addEventListener('click', () => {
+    onStart();
+    getButton('startBtn').blur();
+  });
   getButton('pauseBtn').addEventListener('click', onPause);
   getButton('musicBtn').addEventListener('click', () => {
     const gMusicOn = onToggleMusic();

@@ -165,10 +165,10 @@ async function init() {
   });
 
   const stopGame = () => {
+    isGamePaused = false;
     isGameInProgress = false;
     setState('ready');
     sound?.stopMusic();
-    sound?.playSound('gameOver');
     if (isHighScore(highScores, game.getScore())) {
       setTimeout(() => {
         sound?.playSound('highscore');
@@ -193,6 +193,7 @@ async function init() {
         sound?.playSound(event);
       }
       if (game.isGameOver()) {
+        sound?.playSound('gameOver');
         stopGame();
       }
     }
