@@ -2,7 +2,7 @@ import { BOARD_COLS, BOARD_ROWS } from './game.constants';
 import type { initGame } from './game';
 import type { initSprites } from './sprites';
 import { HIGH_SCORE_COUNT, type HighScore } from './high-scores';
-import type { LayoutConfig } from './display';
+import type { DisplayMode, LayoutConfig } from './display';
 
 export type DrawWindowParams = {
   isShowingHighScores: boolean;
@@ -18,7 +18,8 @@ export const initDraw = (
   canvas: HTMLCanvasElement,
   scale: number,
   game: ReturnType<typeof initGame>,
-  initialLayout: LayoutConfig
+  initialLayout: LayoutConfig,
+  initialDisplayMode: DisplayMode = 'window'
 ) => {
   // Mutable scaled dimensions for rendering
   let BLOCK_WIDTH = 0,
@@ -35,6 +36,8 @@ export const initDraw = (
     SCORE_Y = 0,
     SCORE_HEIGHT = 0,
     SCORE_SPACING = 0;
+
+  let isBw = initialDisplayMode === 'bw';
 
   function applyLayout(layout: LayoutConfig) {
     BLOCK_WIDTH = layout.BLOCK_SIZE * scale;
@@ -59,7 +62,7 @@ export const initDraw = (
   }
 
   function drawClearingAnimation() {
-    ctx.fillStyle = 'rgb(255, 255, 0)';
+    ctx.fillStyle = isBw ? '#FFFFFF' : 'rgb(255, 255, 0)';
     for (const row of game.getRowsToClear()) {
       const y = BOARD_Y + (BOARD_ROWS - 1 - row) * BLOCK_HEIGHT;
       ctx.fillRect(BOARD_X, y, BOARD_WIDTH, BLOCK_HEIGHT);
@@ -93,8 +96,8 @@ export const initDraw = (
     ctx.lineWidth = scale;
     ctx.strokeRect(NEXT_X + 1, NEXT_Y + 1, NEXT_SIZE - 2, NEXT_SIZE - 2);
 
-    // "Next:" label
-    ctx.fillStyle = '#FFFF00';
+    // "Next:" label — white in BW mode, yellow in color
+    ctx.fillStyle = isBw ? '#FFFFFF' : '#FFFF00';
     ctx.font = `${9 * scale}px Geneva, Helvetica, sans-serif`;
     ctx.fillText('Next:', NEXT_X + 3 * scale, NEXT_Y + 12 * scale);
 
@@ -187,6 +190,7 @@ export const initDraw = (
       game.getCurrentLevel(),
       game.getLinesCleared(),
     ];
+    const labels = ['score', 'level', 'rows'];
 
     const FRAME_WIDTH = 98 * scale;
     const FRAME_HEIGHT = 63 * scale;
@@ -199,7 +203,17 @@ export const initDraw = (
         ctx.drawImage(frameImg, SCORE_X, boxY, FRAME_WIDTH, FRAME_HEIGHT);
       }
 
-      ctx.fillStyle = '#4E4E4E';
+      // In BW mode, the frame has no labels — draw them programmatically
+      if (isBw) {
+        ctx.fillStyle = '#000000';
+        ctx.font = `bold ${14 * scale}px Georgia, "Times New Roman", serif`;
+        ctx.textAlign = 'left';
+        const labelX = i === 0 ? 25 : 30;
+        ctx.fillText(labels[i], SCORE_X + labelX * scale, boxY + 20 * scale);
+      }
+
+      // Score values — white in BW, dark gray in color
+      ctx.fillStyle = isBw ? '#FFFFFF' : '#4E4E4E';
       ctx.font = `${18 * scale}px Georgia, "Times New Roman", serif`;
       ctx.textAlign = 'right';
       ctx.fillText(String(values[i]), SCORE_X + 89 * scale, boxY + 50 * scale);
@@ -295,6 +309,18 @@ export const initDraw = (
     width: number,
     height: number
   ) {
+    if (isBw) {
+      // BW mode: 5px white (internal) then 1px black (external)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(x, y, width, height);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(x, y, width, scale); // Top
+      ctx.fillRect(x, y, scale, height); // Left
+      ctx.fillRect(x, y + height - scale, width, scale); // Bottom
+      ctx.fillRect(x + width - scale, y, scale, height); // Right
+      return;
+    }
+
     ctx.fillStyle = '#000000';
     ctx.fillRect(x + 2 * scale, y + 2 * scale, width - scale, height - scale);
     ctx.fillRect(x, y, width, height);
@@ -351,10 +377,14 @@ export const initDraw = (
   function drawAboutPopup({ isShowingAbout }: DrawWindowParams) {
     if (!isShowingAbout) return;
 
-    const IMG_WIDTH = 477;
-    const IMG_HEIGHT = 244;
-    const PADDING = 3; // No padding around image
-    const BORDER_WIDTH = 3; // Same as high scores (3px bevel)
+    const aboutImage = sprites?.getMainSprite('about');
+    if (!aboutImage?.complete) return;
+
+    // Use image natural dimensions (differs between color 477x244 and BW 477x246)
+    const IMG_WIDTH = aboutImage.naturalWidth;
+    const IMG_HEIGHT = aboutImage.naturalHeight;
+    const PADDING = 3;
+    const BORDER_WIDTH = 3;
 
     const drawW = IMG_WIDTH * scale;
     const drawH = IMG_HEIGHT * scale;
@@ -371,10 +401,7 @@ export const initDraw = (
     const CONTENT_X = POPUP_X + BORDER_WIDTH * scale + PADDING * scale;
     const CONTENT_Y = POPUP_Y + BORDER_WIDTH * scale + PADDING * scale;
 
-    const aboutImage = sprites?.getMainSprite('about');
-    if (aboutImage?.complete) {
-      ctx.drawImage(aboutImage, CONTENT_X, CONTENT_Y, drawW, drawH);
-    }
+    ctx.drawImage(aboutImage, CONTENT_X, CONTENT_Y, drawW, drawH);
   }
 
   function drawHighScoresPopup({
@@ -446,18 +473,24 @@ export const initDraw = (
     const { width: dateWidth } = ctx.measureText('Date');
     ctx.fillRect(COL_DATE_X, ROW_START_Y + scale, dateWidth, scale);
 
-    // Draw each high score entry (original: TextFace(0) for normal)
+    // Draw each high score entry
     ctx.font = `${15 * scale}px "Times New Roman", serif`;
 
     for (let i = 0; i < HIGH_SCORE_COUNT; i++) {
       const entry = highScores[i];
       const y = ROW_START_Y + (i + 1) * ROW_HEIGHT + 3 * scale;
 
-      // Highlight player's recent high score in yellow (like original)
       if (i === lastHighScoreIndex) {
-        ctx.fillStyle = '#FFFF00'; // gYellowRGB
+        if (isBw) {
+          // BW mode: bold + slightly larger instead of yellow
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = `bold ${16 * scale}px "Times New Roman", serif`;
+        } else {
+          ctx.fillStyle = '#FFFF00'; // gYellowRGB
+        }
       } else {
         ctx.fillStyle = '#FFFFFF';
+        ctx.font = `${15 * scale}px "Times New Roman", serif`;
       }
 
       // Rank and name
@@ -496,6 +529,9 @@ export const initDraw = (
     drawWindow,
     setSprites: (s: Awaited<ReturnType<typeof initSprites>>) => (sprites = s),
     setLayout: applyLayout,
+    setDisplayMode: (mode: DisplayMode) => {
+      isBw = mode === 'bw';
+    },
   };
 };
 

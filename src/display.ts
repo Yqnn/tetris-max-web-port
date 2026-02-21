@@ -46,7 +46,7 @@ export const FULLSCREEN_LAYOUT: LayoutConfig = {
   SCORE_SPACING: 68,
 };
 
-export const DISPLAY_MODES = ['window', 'fullscreen'] as const;
+export const DISPLAY_MODES = ['window', 'fullscreen', 'bw'] as const;
 export type DisplayMode = (typeof DISPLAY_MODES)[number];
 
 export const getLayout = (mode: DisplayMode): LayoutConfig =>

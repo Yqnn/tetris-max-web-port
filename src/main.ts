@@ -5,7 +5,13 @@ import { initSound } from './sound';
 import { initSprites, type PieceStyle, type BGStyle } from './sprites';
 import { initGame } from './game';
 import { initDraw } from './draw';
-import { getCanvas, initHandlers, promptPlayerName, setState } from './ui';
+import {
+  getCanvas,
+  initHandlers,
+  promptPlayerName,
+  setDisplayModeUI,
+  setState,
+} from './ui';
 import type { Level } from './game.constants';
 import { addHighScore, isHighScore, loadHighScores } from './high-scores';
 import type { HighScore } from './high-scores';
@@ -146,6 +152,13 @@ async function init() {
     },
     onSelectDisplay: async (mode: DisplayMode) => {
       currentDisplayMode = mode;
+      // BW mode forces default pieces and background
+      if (mode === 'bw') {
+        currentPiecesStyle = 'default';
+        currentBackgroundStyle = 'default';
+      }
+      setDisplayModeUI(mode);
+      draw.setDisplayMode(mode);
       draw.setLayout(getLayout(mode));
       await sprites.setDisplayMode(mode, currentPiecesStyle);
     },

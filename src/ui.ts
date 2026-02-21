@@ -111,6 +111,16 @@ export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
   highScoreModalOverlay.addEventListener('click', handleClick);
 };
 
+export const setDisplayModeUI = (mode: DisplayMode) => {
+  const isBw = mode === 'bw';
+  getSelect('piecesSelect').disabled = isBw;
+  getSelect('backgroundSelect').disabled = isBw;
+  if (isBw) {
+    getSelect('piecesSelect').value = 'default';
+    getSelect('backgroundSelect').value = 'default';
+  }
+};
+
 export const initHandlers = ({
   onPause,
   onKeyUp,

@@ -13,11 +13,22 @@ const SPRITES = {
 
 export type SpriteKey = keyof typeof SPRITES;
 
-const LG_SPRITES: Partial<Record<SpriteKey, string>> = {
+const LG_SPRITES: Record<SpriteKey, string> = {
   ...SPRITES,
   gameOver: 'sprites/gameover_lg.png',
   pause: 'sprites/pause_lg.png',
   welcome: 'sprites/welcome_lg.png',
+};
+
+const BW_SPRITES: Record<SpriteKey, string> = {
+  highScores: 'sprites/highscores_bw.png',
+  about: 'sprites/about_bw.png',
+  gameOver: 'sprites/gameover_bw.png',
+  pause: 'sprites/paused_bw.png',
+  welcome: 'sprites/welcome_bw.png',
+  scoreFrame: 'sprites/frame_bw.png',
+  levelFrame: 'sprites/frame_bw.png',
+  rowsFrame: 'sprites/frame_bw.png',
 };
 
 const BACKGROUND_FILES = [
@@ -50,19 +61,25 @@ export const isBGStyle = (style: string): style is BGStyle => {
   return BG_STYLES.includes(style as BGStyle);
 };
 
+const getSpritesForMode = (mode: DisplayMode): Record<SpriteKey, string> => {
+  if (mode === 'bw') return BW_SPRITES;
+  if (mode === 'fullscreen') return LG_SPRITES;
+  return SPRITES;
+};
+
 const initMainSprites = async (
   displayMode: DisplayMode
 ): Promise<Record<SpriteKey, HTMLImageElement>> => {
-  const promises = Object.entries(
-    displayMode === 'fullscreen' ? LG_SPRITES : SPRITES
-  ).map(([id, sprite]) => {
-    return new Promise<[string, HTMLImageElement]>((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve([id, image]);
-      image.onerror = () => reject(new Error(`Could not load sprite ${id}`));
-      image.src = sprite;
-    });
-  });
+  const promises = Object.entries(getSpritesForMode(displayMode)).map(
+    ([id, sprite]) => {
+      return new Promise<[string, HTMLImageElement]>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve([id, image]);
+        image.onerror = () => reject(new Error(`Could not load sprite ${id}`));
+        image.src = sprite;
+      });
+    }
+  );
   return Object.fromEntries(await Promise.all(promises)) as Record<
     SpriteKey,
     HTMLImageElement
@@ -106,17 +123,48 @@ const initBackgroundImages = async (
   return Promise.all(promises);
 };
 
+// Create a static BW checkerboard pattern (like classic Mac 50% gray)
+const initBwBackgroundPattern = (scale: number): CanvasPattern[] => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8 * scale;
+  canvas.height = 8 * scale;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get context for BW background');
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(2 * scale, 0 * scale, scale, scale);
+  ctx.fillRect(4 * scale, 1 * scale, scale, scale);
+  ctx.fillRect(1 * scale, 2 * scale, scale, scale);
+  ctx.fillRect(6 * scale, 4 * scale, scale, scale);
+  const pattern = ctx.createPattern(canvas, 'repeat');
+  if (!pattern) throw new Error('Could not create BW background pattern');
+  // Return the same pattern for all 10 levels (static, no level changes)
+  return new Array(10).fill(pattern);
+};
+
 const initPiecesImage = async (
   pieceStyle: PieceStyle,
   scale: number,
   displayMode: DisplayMode
 ): Promise<HTMLCanvasElement[]> => {
+  // BW mode always uses the BW pieces regardless of style
+  const isBw = displayMode === 'bw';
   // For default pieces in fullscreen, use native _lg sprite (22px blocks)
   const isLgPieces = displayMode === 'fullscreen' && pieceStyle === 'default';
-  const srcFile = isLgPieces
-    ? 'sprites/default_pieces_lg.png'
-    : `pieces/${pieceStyle}.png`;
-  const srcBlockSize = isLgPieces ? FULLSCREEN_BLOCK : ORIGINAL_BLOCK;
+
+  let srcFile: string;
+  let srcBlockSize: number;
+  if (isBw) {
+    srcFile = 'sprites/default_pieces_bw.png';
+    srcBlockSize = ORIGINAL_BLOCK;
+  } else if (isLgPieces) {
+    srcFile = 'sprites/default_pieces_lg.png';
+    srcBlockSize = FULLSCREEN_BLOCK;
+  } else {
+    srcFile = `pieces/${pieceStyle}.png`;
+    srcBlockSize = ORIGINAL_BLOCK;
+  }
 
   const promises = [...new Array(8)].map((_, i) => {
     return new Promise<HTMLCanvasElement>((resolve, reject) => {
@@ -157,9 +205,14 @@ export const initSprites = async (
   scale: number,
   displayMode: DisplayMode = 'window'
 ) => {
+  const bgPromise =
+    displayMode === 'bw'
+      ? Promise.resolve(initBwBackgroundPattern(scale))
+      : initBackgroundImages(backgroundStyle, scale);
+
   const [mainSprites, backgroundImages, piecesImages] = await Promise.all([
     initMainSprites(displayMode),
-    initBackgroundImages(backgroundStyle, scale),
+    bgPromise,
     initPiecesImage(pieceStyle, scale, displayMode),
   ]);
   let currentDisplayMode = displayMode;
@@ -168,6 +221,7 @@ export const initSprites = async (
     getBackgroundImage: (index: number) => backgroundImages[index],
     getPiecesImage: (index: number) => piecesImages[index],
     setBackgroundImages: async (backgroundStyle: BGStyle) => {
+      if (currentDisplayMode === 'bw') return;
       backgroundImages.splice(
         0,
         backgroundImages.length,
@@ -183,14 +237,19 @@ export const initSprites = async (
     },
     setDisplayMode: async (mode: DisplayMode, pStyle: PieceStyle) => {
       currentDisplayMode = mode;
+      const newBg =
+        mode === 'bw'
+          ? initBwBackgroundPattern(scale)
+          : await initBackgroundImages('default', scale);
       const [newMain, newPieces] = await Promise.all([
         initMainSprites(mode),
-        initPiecesImage(pStyle, scale, currentDisplayMode),
+        initPiecesImage(pStyle, scale, mode),
       ]);
       for (const key of Object.keys(newMain) as SpriteKey[]) {
         mainSprites[key] = newMain[key];
       }
       piecesImages.splice(0, piecesImages.length, ...newPieces);
+      backgroundImages.splice(0, backgroundImages.length, ...newBg);
     },
   };
 };
