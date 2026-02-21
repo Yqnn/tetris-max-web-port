@@ -48,13 +48,15 @@ body {
   gap: 20px;
   align-items: center;
   margin-right: 180px;
+}
+.enable-transition .main-container {
   transition: margin-right 0.2s ease;
 }
 
 @media (max-width: 768px) {
   .main-container {
     position: fixed;
-    bottom: 230px;
+    bottom: 250px;
     left: 0;
     right: 0;
     top:0;
@@ -102,16 +104,7 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   overflow-x: hidden;
 }
 
-@media (min-width: 769px) {
-  .side-panel-wrapper.collapsed .side-panel {
-    transform: translateX(calc(100% + 20px));
-    pointer-events: none;
-  }
-  .side-panel-wrapper.collapsed-interactive:hover .side-panel {
-    transform: translateX(0);
-    pointer-events: auto;
-  }
-}
+
 @media (max-width: 768px) {
   body:not(.mobile-controls-expanded) .side-panel {
     transform: translateX(calc(100% + 20px));
@@ -121,6 +114,14 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
 
 
 @media (min-width: 769px) {
+  .side-panel-wrapper.collapsed .side-panel {
+    transform: translateX(calc(100% + 20px));
+    pointer-events: none;
+  }
+  .side-panel-wrapper.collapsed-interactive:hover .side-panel {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
   .side-panel-wrapper::after {
     content: '';
     position: absolute;
@@ -146,9 +147,11 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   flex-direction: column;
   min-width: 180px;
   font-size: 11px;
-  transition: transform 0.2s ease;
   background-color: #FFFFFF;
   border-left: 1px solid #000000;
+}
+.enable-transition .side-panel {
+  transition: transform 0.2s ease;
 }
 
 .side-panel::before {
@@ -172,7 +175,6 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   font-size: 11px;
   border: 1px solid #000000;
   box-shadow: 1px 1px 0 #000000;
-  transition: transform 0.2s ease;
 }
 
 .popup-window::before {
@@ -485,7 +487,7 @@ body.bw .highscore-modal-tetromino {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 230px;
+    height: 250px;
   }
 
   .mobile-btn {
@@ -514,42 +516,42 @@ body.bw .highscore-modal-tetromino {
   #mobileLeft {
     background-image: url('/sprites/arrow_left.png');
     left: 10px;
-    bottom: 120px;
+    bottom: 140px;
   }
   #mobileRight {
     background-image: url('/sprites/arrow_right.png');
     left: 110px;
-    bottom: 120px;
+    bottom: 140px;
   }
   #mobileSoftDrop {
     background-image: url('/sprites/arrow_down.png');
     left: 60px;
-    bottom: 70px;
+    bottom: 90px;
   }
   #mobileHardDrop {
     background-image: url('/sprites/arrow_down_dashed.png');
     left: 60px;
-    bottom: 170px;
+    bottom: 190px;
   }
   #mobileRotateCcw {
     background-image: url('/sprites/turn_counterclockwise.png');
     right: 10px;
-    bottom: 150px;
+    bottom: 170px;
   }
   #mobileRotateCw {
     background-image: url('/sprites/turn_clockwise.png');
     right: 70px;
-    bottom: 90px;
+    bottom: 110px;
   }
   #mobileStartPause {
     left: calc(50% + 40px);
     transform: translateX(-50%);
-    bottom: 10px;
+    bottom: 30px;
   }
   #mobileToggleBar {
     left: calc(50% - 40px);
     transform: translateX(-50%);
-    bottom: 10px;
+    bottom: 30px;
   }
 
 }

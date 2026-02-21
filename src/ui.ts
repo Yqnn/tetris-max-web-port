@@ -205,8 +205,14 @@ export const initHandlers = ({
   getButton('startBtn').addEventListener('click', () => {
     onStart();
     getButton('startBtn').blur();
+    document.body.classList.remove('mobile-controls-expanded');
   });
-  getButton('pauseBtn').addEventListener('click', onPause);
+  getButton('pauseBtn').addEventListener('click', () => {
+    onPause();
+    if (getButton('pauseBtn').textContent.trim() === 'Pause') {
+      document.body.classList.remove('mobile-controls-expanded');
+    }
+  });
   getButton('musicBtn').addEventListener('click', () => {
     const gMusicOn = onToggleMusic();
     getButton('musicBtn').textContent = gMusicOn ? 'Music: ON' : 'Music: OFF';
@@ -217,8 +223,14 @@ export const initHandlers = ({
       ? 'Sound Effects: ON'
       : 'Sound Effects: OFF';
   });
-  getButton('highScoresBtn').addEventListener('click', onShowHighScores);
-  getButton('aboutBtn').addEventListener('click', onShowAbout);
+  getButton('highScoresBtn').addEventListener('click', () => {
+    onShowHighScores();
+    document.body.classList.remove('mobile-controls-expanded');
+  });
+  getButton('aboutBtn').addEventListener('click', () => {
+    onShowAbout();
+    document.body.classList.remove('mobile-controls-expanded');
+  });
   getSelect('levelSelect').addEventListener('change', (e) => {
     const value = (e?.target as HTMLSelectElement)?.value;
     if (value) {
@@ -321,4 +333,6 @@ export const initHandlers = ({
       document.body.classList.remove('mobile-controls-expanded');
     }
   });
+
+  document.body.classList.add('enable-transition');
 };

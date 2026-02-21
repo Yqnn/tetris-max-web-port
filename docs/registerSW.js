@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/tetris-max-web-port/sw.js', { scope: '/tetris-max-web-port/' })})}
