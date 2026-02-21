@@ -11,107 +11,107 @@
       <div class="game-wrapper">
         <canvas id="gameCanvas"></canvas>
       </div>
+    </div>
 
-      <div class="controls-panel-wrapper" id="controlsPanelWrapper">
-        <div class="controls-panel">
-          <div class="controls-row">
-            <button id="startBtn" class="game-btn primary">Begin Game</button>
-            <button id="pauseBtn" class="game-btn" disabled>Pause</button>
-            <button id="highScoresBtn" class="game-btn">High Scores</button>
-            <button id="aboutBtn" class="game-btn">About...</button>
-          </div>
-          <div class="controls-row">
-            <button id="soundBtn" class="game-btn">Sound Effects: ON</button>
-            <button id="musicBtn" class="game-btn">Music: ON</button>
-            <div class="settings-section">
-              <label for="displaySelect">Display:</label>
-              <div class="select-wrap">
-                <select id="displaySelect">
-                  <option value="window">Window</option>
-                  <option value="fullscreen">Full Screen</option>
-                </select>
-              </div>
-            </div>
-            <div class="settings-section">
-              <label for="levelSelect">Starting Level:</label>
-              <div class="select-wrap">
-                <select id="levelSelect">
-                  <option value="1">Level 1</option>
-                  <option value="2">Level 2</option>
-                  <option value="3">Level 3</option>
-                  <option value="4">Level 4</option>
-                  <option value="5">Level 5</option>
-                  <option value="6">Level 6</option>
-                  <option value="7">Level 7</option>
-                  <option value="8">Level 8</option>
-                  <option value="9">Level 9</option>
-                  <option value="10">Level 10</option>
-                </select>
-              </div>
-            </div>
-            <div class="settings-section">
-              <label for="musicSelect">Music:</label>
-              <div class="select-wrap">
-                <select id="musicSelect">
-                  <option value="peter_wagner">Peter Wagner</option>
-                  <option value="animal_instinct">Animal Instinct</option>
-                </select>
-              </div>
-            </div>
-            <div class="settings-section">
-              <label for="piecesSelect">Pieces:</label>
-              <div class="select-wrap">
-                <select id="piecesSelect">
-                  <option value="default">Default</option>
-                  <option value="diamond">Diamond</option>
-                  <option value="spherical">Spherical</option>
-                </select>
-              </div>
-            </div>
-            <div class="settings-section">
-              <label for="backgroundSelect">Backgrounds:</label>
-              <div class="select-wrap">
-                <select id="backgroundSelect">
-                  <option value="default">Default</option>
-                  <option value="pot_luck">Pot Luck</option>
-                </select>
-              </div>
+    <div class="controls-panel-wrapper" id="controlsPanelWrapper">
+      <div class="controls-panel">
+        <div class="controls-row">
+          <button id="startBtn" class="game-btn primary">Begin Game</button>
+          <button id="pauseBtn" class="game-btn" disabled>Pause</button>
+          <button id="highScoresBtn" class="game-btn">High Scores</button>
+          <button id="aboutBtn" class="game-btn">About...</button>
+        </div>
+        <div class="controls-row">
+          <button id="soundBtn" class="game-btn">Sound Effects: ON</button>
+          <button id="musicBtn" class="game-btn">Music: ON</button>
+          <div class="settings-section">
+            <label for="displaySelect">Display:</label>
+            <div class="select-wrap">
+              <select id="displaySelect">
+                <option value="window">Window</option>
+                <option value="fullscreen">Full Screen</option>
+              </select>
             </div>
           </div>
-          <div class="controls-row">
-            <div class="controls-help">
-              <span>Controls:</span>
-              <table>
-                <tr>
-                  <td><kbd>←</kbd> / <kbd>J</kbd></td>
-                  <td>Move Left</td>
-                </tr>
-                <tr>
-                  <td><kbd>→</kbd> / <kbd>L</kbd></td>
-                  <td>Move Right</td>
-                </tr>
-                <tr>
-                  <td><kbd>↓</kbd> / <kbd>Space</kbd></td>
-                  <td>Hard Drop</td>
-                </tr>
-                <tr>
-                  <td><kbd>↑</kbd> / <kbd>I</kbd></td>
-                  <td>Rotate CW</td>
-                </tr>
-                <tr>
-                  <td><kbd>K</kbd></td>
-                  <td>Rotate CCW</td>
-                </tr>
-                <tr>
-                  <td><kbd>M</kbd></td>
-                  <td>Soft Drop</td>
-                </tr>
-                <tr>
-                  <td><kbd>P</kbd></td>
-                  <td>Pause</td>
-                </tr>
-              </table>
+          <div class="settings-section">
+            <label for="levelSelect">Starting Level:</label>
+            <div class="select-wrap">
+              <select id="levelSelect">
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+                <option value="7">Level 7</option>
+                <option value="8">Level 8</option>
+                <option value="9">Level 9</option>
+                <option value="10">Level 10</option>
+              </select>
             </div>
+          </div>
+          <div class="settings-section">
+            <label for="musicSelect">Music:</label>
+            <div class="select-wrap">
+              <select id="musicSelect">
+                <option value="peter_wagner">Peter Wagner</option>
+                <option value="animal_instinct">Animal Instinct</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-section">
+            <label for="piecesSelect">Pieces:</label>
+            <div class="select-wrap">
+              <select id="piecesSelect">
+                <option value="default">Default</option>
+                <option value="diamond">Diamond</option>
+                <option value="spherical">Spherical</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-section">
+            <label for="backgroundSelect">Backgrounds:</label>
+            <div class="select-wrap">
+              <select id="backgroundSelect">
+                <option value="default">Default</option>
+                <option value="pot_luck">Pot Luck</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="controls-row">
+          <div class="controls-help">
+            <span>Controls:</span>
+            <table>
+              <tr>
+                <td><kbd>←</kbd> / <kbd>J</kbd></td>
+                <td>Move Left</td>
+              </tr>
+              <tr>
+                <td><kbd>→</kbd> / <kbd>L</kbd></td>
+                <td>Move Right</td>
+              </tr>
+              <tr>
+                <td><kbd>↓</kbd> / <kbd>Space</kbd></td>
+                <td>Hard Drop</td>
+              </tr>
+              <tr>
+                <td><kbd>↑</kbd> / <kbd>I</kbd></td>
+                <td>Rotate CW</td>
+              </tr>
+              <tr>
+                <td><kbd>K</kbd></td>
+                <td>Rotate CCW</td>
+              </tr>
+              <tr>
+                <td><kbd>M</kbd></td>
+                <td>Soft Drop</td>
+              </tr>
+              <tr>
+                <td><kbd>P</kbd></td>
+                <td>Pause</td>
+              </tr>
+            </table>
           </div>
         </div>
       </div>

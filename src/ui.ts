@@ -61,8 +61,14 @@ export const setState = (state: 'running' | 'ready' | 'paused') => {
 
   if (state === 'running') {
     getElement('controlsPanelWrapper').classList.add('collapsed');
+    setTimeout(() => {
+      getElement('controlsPanelWrapper').classList.add('collapsed-interactive');
+    }, 300);
   } else {
     getElement('controlsPanelWrapper').classList.remove('collapsed');
+    getElement('controlsPanelWrapper').classList.remove(
+      'collapsed-interactive'
+    );
   }
 };
 
