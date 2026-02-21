@@ -29,6 +29,14 @@ function getButton(
     | 'musicBtn'
     | 'soundBtn'
     | 'highScoreModalOk'
+    | 'mobileLeft'
+    | 'mobileRight'
+    | 'mobileSoftDrop'
+    | 'mobileHardDrop'
+    | 'mobileRotateCcw'
+    | 'mobileRotateCw'
+    | 'mobileStartPause'
+    | 'mobileToggleBar'
 ): HTMLButtonElement {
   return document.getElementById(id) as HTMLButtonElement;
 }
@@ -38,13 +46,17 @@ function getInput(id: 'highScoreNameInput'): HTMLInputElement {
 }
 
 function getElement(
-  id: 'highScoreModalOverlay' | 'sidePanelWrapper'
+  id: 'highScoreModalOverlay' | 'sidePanelWrapper' | 'mobileControls'
 ): HTMLElement {
   return document.getElementById(id) as HTMLElement;
 }
 
 export function getCanvas(): HTMLCanvasElement {
   return document.getElementById('gameCanvas') as HTMLCanvasElement;
+}
+
+function vibrateBrief() {
+  navigator?.vibrate?.(10);
 }
 
 export const setState = (state: 'running' | 'ready' | 'paused') => {
@@ -55,6 +67,10 @@ export const setState = (state: 'running' | 'ready' | 'paused') => {
   getButton('pauseBtn').classList.toggle('primary', state === 'paused');
   getButton('pauseBtn').textContent = state === 'paused' ? 'Resume' : 'Pause';
   getSelect('levelSelect').disabled = state !== 'ready';
+
+  const mobileStartPause = getButton('mobileStartPause');
+  mobileStartPause.textContent =
+    state === 'ready' ? 'Start' : state === 'paused' ? 'Resume' : 'Pause';
 
   getElement('sidePanelWrapper').classList.toggle(
     'collapsed',
@@ -231,6 +247,78 @@ export const initHandlers = ({
     const mode = (e?.target as HTMLSelectElement)?.value;
     if (isDisplayMode(mode)) {
       onSelectDisplay(mode);
+    }
+  });
+
+  const bindHeldKey = (btn: HTMLButtonElement, key: string) => {
+    const release = (e?: PointerEvent) => {
+      onKeyUp(key);
+      btn.classList.remove('active');
+      if (e && typeof btn.releasePointerCapture === 'function') {
+        btn.releasePointerCapture(e.pointerId);
+      }
+    };
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (btn.setPointerCapture) btn.setPointerCapture(e.pointerId);
+      vibrateBrief();
+      onKeyDown(key);
+      btn.classList.add('active');
+    });
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointerleave', release);
+    btn.addEventListener('pointercancel', release);
+  };
+
+  bindHeldKey(getButton('mobileLeft'), 'j');
+  bindHeldKey(getButton('mobileRight'), 'l');
+  bindHeldKey(getButton('mobileSoftDrop'), 'm');
+
+  const hardDropBtn = getButton('mobileHardDrop');
+  hardDropBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    vibrateBrief();
+    onKeyDown('ArrowDown');
+  });
+  hardDropBtn.addEventListener('pointerup', () => {
+    onKeyUp('ArrowDown');
+  });
+
+  getButton('mobileRotateCw').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    vibrateBrief();
+    onKeyDown('k');
+  });
+
+  getButton('mobileRotateCcw').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    vibrateBrief();
+    onKeyDown('i');
+  });
+
+  getButton('mobileStartPause').addEventListener('click', () => {
+    const btn = getButton('mobileStartPause');
+    vibrateBrief();
+    if (btn.textContent.trim() === 'Start') {
+      onStart();
+    } else {
+      onPause();
+    }
+    btn.blur();
+  });
+
+  getButton('mobileToggleBar').addEventListener('click', () => {
+    vibrateBrief();
+    document.body.classList.toggle('mobile-controls-expanded');
+    getButton('mobileToggleBar').blur();
+  });
+
+  document.body.addEventListener('click', (e) => {
+    if (
+      (!(e.target instanceof Element) || !e.target.closest('.side-panel')) &&
+      !(e.target instanceof HTMLButtonElement)
+    ) {
+      document.body.classList.remove('mobile-controls-expanded');
     }
   });
 };

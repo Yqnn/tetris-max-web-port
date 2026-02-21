@@ -845,7 +845,7 @@ def main():
         128: "popup_triangle.png",
         129: "about.png",
         130: "default_pieces.png",
-        131: "restore.png",
+        131: "turn_clockwise.png",
         132: "arrow_left.png",
         133: "arrow_down.png",
         134: "arrow_right.png",
@@ -857,8 +857,8 @@ def main():
         140: "welcome_bw.png",
         141: "frame_bw.png",
         142: "t_piece_bw.png",
-        143: "restore_reversed.png",
-        144: "turn_clockwise.png",
+        143: "turn_counterclockwise.png",
+        144: "turn_clockwise_bw.png",
         145: "arrow_down_dashed.png",
         146: "t_piece.png",
         148: "shareware_notice.png",
@@ -875,7 +875,7 @@ def main():
         261: "level_frame.png",
         262: "rows_frame.png",
         280: "highscores_bw.png",
-        300: "turn_counterclockwise.png",
+        300: "turn_counterclockwise_bw.png",
     }
 
     for pict_id in sorted(resources['PICT'].keys()):

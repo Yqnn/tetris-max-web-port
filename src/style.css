@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Charcoal';
-  src: url('assets/charcoal-regular.ttf') format('truetype');
+  src: url('../public/fonts/charcoal-regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -11,6 +11,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
 }
 
 body {
@@ -24,13 +25,8 @@ body {
   color: #fff;
 }
 
-@media (max-width: 768px) {
-  body {
-    align-items: flex-start;
-  }
-}
 
-/* Main container - horizontal layout */
+
 .main-container {
   display: flex;
   flex-direction: row;
@@ -40,15 +36,39 @@ body {
   transition: margin-right 0.2s ease;
 }
 
+@media (max-width: 768px) {
+  .main-container {
+    position: fixed;
+    bottom: 230px;
+    left: 0;
+    right: 0;
+    top:0;
+    align-items:center;
+  }
+}
+
 body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   max-width: 100vw;
   margin-right: 0;
+}
+@media (max-width: 768px) {
+  .main-container {
+    max-width: 100vw;
+    margin-right: 0;
+  }
+  .controls-help {
+    display: none;
+  }
+  .controls-row:nth-last-child(-n + 2) {
+    border-bottom: none !important;
+  }
 }
 
 /* Game canvas wrapper */
 .game-wrapper {
   flex-shrink: 0;
   max-width: 100%;
+  max-height: 100%;
 }
 
 #gameCanvas {
@@ -67,26 +87,36 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   overflow-x: hidden;
 }
 
-.side-panel-wrapper.collapsed .side-panel {
-  transform: translateX(calc(100% + 20px));
-  pointer-events: none;
+@media (min-width: 769px) {
+  .side-panel-wrapper.collapsed .side-panel {
+    transform: translateX(calc(100% + 20px));
+    pointer-events: none;
+  }
+  .side-panel-wrapper.collapsed-interactive:hover .side-panel {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+}
+@media (max-width: 768px) {
+  body:not(.mobile-controls-expanded) .side-panel {
+    transform: translateX(calc(100% + 20px));
+    pointer-events: none;
+  }
 }
 
-.side-panel-wrapper.collapsed-interactive:hover .side-panel {
-  transform: translateX(0);
-  pointer-events: auto;
-}
 
-.side-panel-wrapper::after {
-  content: '';
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 2px;
+@media (min-width: 769px) {
+  .side-panel-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 2px;
+  }
 }
 
 /* Controls panel on the right */
@@ -387,13 +417,13 @@ kbd {
 .highscore-modal-tetromino {
   width: 39px;
   height: 54px;
-  background-image: url('sprites/t_piece.png');
+  background-image: url('../public/sprites/t_piece.png');
 }
 
 body.bw .highscore-modal-tetromino {
   width: 35px;
   height: 51px;
-  background-image: url('sprites/t_piece_bw.png');
+  background-image: url('../public/sprites/t_piece_bw.png');
 }
 
 
@@ -427,4 +457,84 @@ body.bw .highscore-modal-tetromino {
   align-self: flex-end;
   width: auto;
   min-width: 60px;
+}
+
+.mobile-controls {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-controls {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 230px;
+  }
+
+  .mobile-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: white;
+    border: none;
+    opacity: 0.7;
+    position: absolute;
+  }
+  .mobile-btn-text {
+    font-size: 12px;
+    height: 30px;
+    width: 70px;
+    font-weight: bold;
+    color: #000000;
+  }
+  .mobile-btn.active, .mobile-btn:active {
+    opacity: 1;
+    color: #000000;
+  }
+
+  #mobileLeft {
+    background-image: url('../public/sprites/arrow_left.png');
+    left: 10px;
+    bottom: 120px;
+  }
+  #mobileRight {
+    background-image: url('../public/sprites/arrow_right.png');
+    left: 110px;
+    bottom: 120px;
+  }
+  #mobileSoftDrop {
+    background-image: url('../public/sprites/arrow_down.png');
+    left: 60px;
+    bottom: 70px;
+  }
+  #mobileHardDrop {
+    background-image: url('../public/sprites/arrow_down_dashed.png');
+    left: 60px;
+    bottom: 170px;
+  }
+  #mobileRotateCcw {
+    background-image: url('../public/sprites/turn_counterclockwise.png');
+    right: 10px;
+    bottom: 150px;
+  }
+  #mobileRotateCw {
+    background-image: url('../public/sprites/turn_clockwise.png');
+    right: 70px;
+    bottom: 90px;
+  }
+  #mobileStartPause {
+    left: calc(50% + 40px);
+    transform: translateX(-50%);
+    bottom: 10px;
+  }
+  #mobileToggleBar {
+    left: calc(50% - 40px);
+    transform: translateX(-50%);
+    bottom: 10px;
+  }
+
 }

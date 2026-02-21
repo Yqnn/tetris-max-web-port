@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Tetris Max</title>
     <link rel="icon" href="/favicon.png" type="image/png" />
   </head>
@@ -11,6 +14,53 @@
       <div class="game-wrapper">
         <canvas id="gameCanvas"></canvas>
       </div>
+    </div>
+
+    <div class="mobile-controls" id="mobileControls">
+      <button
+        id="mobileLeft"
+        class="mobile-btn"
+        aria-label="Move left"
+      ></button>
+      <button
+        id="mobileRight"
+        class="mobile-btn"
+        aria-label="Move right"
+      ></button>
+      <button
+        id="mobileSoftDrop"
+        class="mobile-btn"
+        aria-label="Slow drop"
+      ></button>
+      <button
+        id="mobileHardDrop"
+        class="mobile-btn"
+        aria-label="Fast drop"
+      ></button>
+      <button
+        id="mobileRotateCcw"
+        class="mobile-btn"
+        aria-label="Rotate counterclockwise"
+      ></button>
+      <button
+        id="mobileRotateCw"
+        class="mobile-btn"
+        aria-label="Rotate clockwise"
+      ></button>
+      <button
+        type="button"
+        id="mobileStartPause"
+        class="mobile-btn mobile-btn-text"
+      >
+        Start
+      </button>
+      <button
+        type="button"
+        id="mobileToggleBar"
+        class="mobile-btn mobile-btn-text"
+      >
+        Menu
+      </button>
     </div>
 
     <div class="side-panel-wrapper" id="sidePanelWrapper">
