@@ -12,6 +12,8 @@
   padding: 0;
   box-sizing: border-box;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 /* Prevent zoom/scroll on iOS Safari (viewport meta is ignored since iOS 10) */
@@ -19,7 +21,6 @@ html {
   overflow: hidden;
   overscroll-behavior: none;
   height: 100%;
-  touch-action: manipulation;
 }
 body {
   font-family: 'Charcoal', Geneva, 'Lucida Grande', Helvetica, Arial, sans-serif;
@@ -33,7 +34,6 @@ body {
   color: #fff;
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: manipulation;
   position: fixed;
   inset: 0;
   width: 100%;

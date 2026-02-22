@@ -5,8 +5,11 @@ type Handlers = {
 
 export function createTouchHeldKeys() {
   const registry = new Map<HTMLElement, Handlers>();
-  let activeTouchId: number | null = null;
-  let current: HTMLElement | null = null;
+  /** Which button (and handlers) each touch is currently over. */
+  const touchTargets = new Map<number, { btn: HTMLElement; key: Handlers }>();
+  /** Number of touches currently on each button (keyDown once, keyUp when 0). */
+  const refCount = new Map<HTMLElement, number>();
+
   const enter = (btn: HTMLElement, handler?: () => void) => {
     handler?.();
     btn.classList.add('active');
@@ -17,64 +20,71 @@ export function createTouchHeldKeys() {
   };
   const getAt = (clientX: number, clientY: number) => {
     const el = document.elementFromPoint(clientX, clientY);
-    if (!el) {
-      return null;
-    }
+    if (!el) return null;
     for (const [btn, key] of registry) {
-      if (btn === el || btn.contains(el)) {
-        return { btn, key };
-      }
+      if (btn === el || btn.contains(el)) return { btn, key };
     }
     return null;
   };
-  const setTarget = (hit: { btn: HTMLElement; key: Handlers } | null) => {
-    if (current === hit?.btn) {
-      return;
-    }
-    if (current) {
-      const key = registry.get(current);
-      if (key) {
-        leave(current, key.keyUp);
+
+  const setTargetForTouch = (
+    touchId: number,
+    hit: { btn: HTMLElement; key: Handlers } | null
+  ) => {
+    const prev = touchTargets.get(touchId);
+    if (prev?.btn === hit?.btn) return;
+    if (prev) {
+      const n = (refCount.get(prev.btn) ?? 0) - 1;
+      if (n <= 0) {
+        refCount.delete(prev.btn);
+        leave(prev.btn, prev.key.keyUp);
+      } else {
+        refCount.set(prev.btn, n);
       }
+      touchTargets.delete(touchId);
     }
-    current = hit?.btn ?? null;
     if (hit) {
-      enter(hit.btn, hit.key.keyDown);
+      touchTargets.set(touchId, hit);
+      const n = (refCount.get(hit.btn) ?? 0) + 1;
+      refCount.set(hit.btn, n);
+      if (n === 1) enter(hit.btn, hit.key.keyDown);
     }
+  };
+
+  const endTouch = (touchId: number) => {
+    const prev = touchTargets.get(touchId);
+    if (!prev) return;
+    const n = (refCount.get(prev.btn) ?? 0) - 1;
+    if (n <= 0) {
+      refCount.delete(prev.btn);
+      leave(prev.btn, prev.key.keyUp);
+    } else {
+      refCount.set(prev.btn, n);
+    }
+    touchTargets.delete(touchId);
   };
 
   document.addEventListener(
     'touchstart',
     (e) => {
-      if (activeTouchId !== null || !e.changedTouches[0]) {
-        return;
+      for (const t of e.changedTouches) {
+        setTargetForTouch(t.identifier, getAt(t.clientX, t.clientY));
       }
-      const t = e.changedTouches[0];
-      activeTouchId = t.identifier;
-      setTarget(getAt(t.clientX, t.clientY));
     },
     { passive: true }
   );
   document.addEventListener(
     'touchmove',
     (e) => {
-      if (activeTouchId === null) {
-        return;
-      }
-      const t = [...e.touches].find((x) => x.identifier === activeTouchId);
-      if (t) {
-        setTarget(getAt(t.clientX, t.clientY));
+      for (const t of e.touches) {
+        const hit = getAt(t.clientX, t.clientY);
+        setTargetForTouch(t.identifier, hit);
       }
     },
     { passive: true }
   );
   const end = (e: TouchEvent) => {
-    for (const t of e.changedTouches) {
-      if (t.identifier === activeTouchId) {
-        setTarget(null);
-        activeTouchId = null;
-      }
-    }
+    for (const t of e.changedTouches) endTouch(t.identifier);
   };
   document.addEventListener('touchend', end);
   document.addEventListener('touchcancel', end);

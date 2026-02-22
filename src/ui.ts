@@ -316,6 +316,9 @@ export const initHandlers = ({
   });
 
   document.body.classList.add('enable-transition');
+  getElement('mobileControls').addEventListener('touchstart', (e) =>
+    e.preventDefault()
+  );
 
   let currentState: 'running' | 'ready' | 'paused' = 'ready';
   const setState = (state: 'running' | 'ready' | 'paused') => {
