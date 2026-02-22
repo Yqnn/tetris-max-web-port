@@ -316,8 +316,8 @@ export const initDraw = (
       ctx.fillStyle = '#000000';
       ctx.fillRect(x, y, width, scale); // Top
       ctx.fillRect(x, y, scale, height); // Left
-      ctx.fillRect(x, y + height - scale, width, scale); // Bottom
-      ctx.fillRect(x + width - scale, y, scale, height); // Right
+      ctx.fillRect(x, y + height - scale, width, 2 * scale); // Bottom
+      ctx.fillRect(x + width - scale, y, 2 * scale, height); // Right
       return;
     }
 
@@ -382,7 +382,7 @@ export const initDraw = (
 
     // Use image natural dimensions (differs between color 477x244 and BW 477x246)
     const IMG_WIDTH = aboutImage.naturalWidth;
-    const IMG_HEIGHT = aboutImage.naturalHeight;
+    const IMG_HEIGHT = aboutImage.naturalHeight - (isBw ? 2 : 0);
     const PADDING = 3;
     const BORDER_WIDTH = 3;
 
@@ -400,8 +400,17 @@ export const initDraw = (
     // Draw about image centered
     const CONTENT_X = POPUP_X + BORDER_WIDTH * scale + PADDING * scale;
     const CONTENT_Y = POPUP_Y + BORDER_WIDTH * scale + PADDING * scale;
-
-    ctx.drawImage(aboutImage, CONTENT_X, CONTENT_Y, drawW, drawH);
+    ctx.drawImage(
+      aboutImage,
+      0,
+      0,
+      IMG_WIDTH,
+      IMG_HEIGHT,
+      CONTENT_X,
+      CONTENT_Y,
+      drawW,
+      drawH
+    );
   }
 
   function drawHighScoresPopup({

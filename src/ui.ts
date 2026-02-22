@@ -1,6 +1,8 @@
+import { createTouchHeldKeys } from './create-touch-held-keys';
 import type { DisplayMode } from './display';
 import { isDisplayMode } from './display';
 import type { Level } from './game.constants';
+import type { Settings } from './settings';
 import type { MusicStyle } from './sound';
 import {
   isBGStyle,
@@ -59,32 +61,6 @@ function vibrateBrief() {
   navigator?.vibrate?.(10);
 }
 
-export const setState = (state: 'running' | 'ready' | 'paused') => {
-  getButton('startBtn').textContent =
-    state === 'ready' ? 'Begin Game' : 'Abort';
-  getButton('startBtn').classList.toggle('primary', state === 'ready');
-  getButton('pauseBtn').disabled = state === 'ready';
-  getButton('pauseBtn').classList.toggle('primary', state === 'paused');
-  getButton('pauseBtn').textContent = state === 'paused' ? 'Resume' : 'Pause';
-  getSelect('levelSelect').disabled = state !== 'ready';
-
-  const mobileStartPause = getButton('mobileStartPause');
-  mobileStartPause.textContent =
-    state === 'ready' ? 'Start' : state === 'paused' ? 'Resume' : 'Pause';
-
-  getElement('sidePanelWrapper').classList.toggle(
-    'collapsed',
-    state === 'running'
-  );
-  if (state === 'running') {
-    setTimeout(() => {
-      getElement('sidePanelWrapper').classList.add('collapsed-interactive');
-    }, 300);
-  } else {
-    getElement('sidePanelWrapper').classList.remove('collapsed-interactive');
-  }
-};
-
 export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
   const highScoreModalOverlay = getElement('highScoreModalOverlay');
   highScoreModalOverlay.removeAttribute('hidden');
@@ -135,6 +111,39 @@ export const setDisplayModeUI = (mode: DisplayMode) => {
   document.body.classList.toggle('bw', isBw);
 };
 
+export const setSettingsUI = ({
+  isMusicOn,
+  isSoundOn,
+  piecesStyle,
+  backgroundStyle,
+  musicStyle,
+  displayMode,
+  level,
+}: Partial<Settings>) => {
+  if (isMusicOn !== undefined) {
+    getButton('musicBtn').textContent = 'Music: ' + (isMusicOn ? 'ON' : 'OFF');
+  }
+  if (isSoundOn !== undefined) {
+    getButton('soundBtn').textContent =
+      'Sound Effects: ' + (isSoundOn ? 'ON' : 'OFF');
+  }
+  if (piecesStyle !== undefined) {
+    getSelect('piecesSelect').value = piecesStyle;
+  }
+  if (backgroundStyle !== undefined) {
+    getSelect('backgroundSelect').value = backgroundStyle;
+  }
+  if (musicStyle !== undefined) {
+    getSelect('musicSelect').value = musicStyle;
+  }
+  if (displayMode !== undefined) {
+    getSelect('displaySelect').value = displayMode;
+  }
+  if (level !== undefined) {
+    getSelect('levelSelect').value = level.toString();
+  }
+};
+
 export const initHandlers = ({
   onPause,
   onKeyUp,
@@ -150,6 +159,8 @@ export const initHandlers = ({
   onSelectBackground,
   onSelectMusic,
   onSelectDisplay,
+  initialDisplayMode,
+  initialSettings,
 }: {
   onPause: () => void;
   onKeyUp: (key: string) => void;
@@ -165,7 +176,12 @@ export const initHandlers = ({
   onSelectBackground: (background: BGStyle) => void;
   onSelectMusic: (music: MusicStyle) => void;
   onSelectDisplay: (mode: DisplayMode) => void;
+  initialDisplayMode: DisplayMode;
+  initialSettings: Settings;
 }) => {
+  setDisplayModeUI(initialDisplayMode);
+  setSettingsUI(initialSettings);
+
   // Event listeners
   document.addEventListener('keydown', (e) => {
     const highScoreModalOverlay = getElement('highScoreModalOverlay');
@@ -209,19 +225,17 @@ export const initHandlers = ({
   });
   getButton('pauseBtn').addEventListener('click', () => {
     onPause();
-    if (getButton('pauseBtn').textContent.trim() === 'Pause') {
+    if (currentState === 'running') {
       document.body.classList.remove('mobile-controls-expanded');
     }
   });
   getButton('musicBtn').addEventListener('click', () => {
-    const gMusicOn = onToggleMusic();
-    getButton('musicBtn').textContent = gMusicOn ? 'Music: ON' : 'Music: OFF';
+    const isMusicOn = onToggleMusic();
+    setSettingsUI({ isMusicOn });
   });
   getButton('soundBtn').addEventListener('click', () => {
-    const gSoundOn = onToggleSound();
-    getButton('soundBtn').textContent = gSoundOn
-      ? 'Sound Effects: ON'
-      : 'Sound Effects: OFF';
+    const isSoundOn = onToggleSound();
+    setSettingsUI({ isSoundOn });
   });
   getButton('highScoresBtn').addEventListener('click', () => {
     onShowHighScores();
@@ -262,67 +276,34 @@ export const initHandlers = ({
     }
   });
 
-  const bindHeldKey = (btn: HTMLButtonElement, key: string) => {
-    const release = (e?: PointerEvent) => {
-      onKeyUp(key);
-      btn.classList.remove('active');
-      if (e && typeof btn.releasePointerCapture === 'function') {
-        btn.releasePointerCapture(e.pointerId);
-      }
-    };
-    btn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      if (btn.setPointerCapture) btn.setPointerCapture(e.pointerId);
-      vibrateBrief();
+  const bindHeldKey = createTouchHeldKeys();
+  const makeKeyHandlers = (key: string) => ({
+    keyDown: () => {
       onKeyDown(key);
-      btn.classList.add('active');
-    });
-    btn.addEventListener('pointerup', release);
-    btn.addEventListener('pointerleave', release);
-    btn.addEventListener('pointercancel', release);
-  };
-
-  bindHeldKey(getButton('mobileLeft'), 'j');
-  bindHeldKey(getButton('mobileRight'), 'l');
-  bindHeldKey(getButton('mobileSoftDrop'), 'm');
-
-  const hardDropBtn = getButton('mobileHardDrop');
-  hardDropBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    vibrateBrief();
-    onKeyDown('ArrowDown');
+      vibrateBrief();
+    },
+    keyUp: () => onKeyUp(key),
   });
-  hardDropBtn.addEventListener('pointerup', () => {
-    onKeyUp('ArrowDown');
-  });
+  bindHeldKey(getButton('mobileLeft'), makeKeyHandlers('j'));
+  bindHeldKey(getButton('mobileRight'), makeKeyHandlers('l'));
+  bindHeldKey(getButton('mobileSoftDrop'), makeKeyHandlers('m'));
+  bindHeldKey(getButton('mobileHardDrop'), makeKeyHandlers('ArrowDown'));
 
-  getButton('mobileRotateCw').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    vibrateBrief();
-    onKeyDown('k');
-  });
-
-  getButton('mobileRotateCcw').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    vibrateBrief();
-    onKeyDown('i');
-  });
-
-  getButton('mobileStartPause').addEventListener('click', () => {
-    const btn = getButton('mobileStartPause');
-    vibrateBrief();
-    if (btn.textContent.trim() === 'Start') {
+  const bindButton = (
+    btn: HTMLButtonElement,
+    handler: (btn: HTMLButtonElement) => void
+  ) => bindHeldKey(btn, { keyDown: () => handler(btn) });
+  bindButton(getButton('mobileRotateCw'), () => onKeyDown('k'));
+  bindButton(getButton('mobileRotateCcw'), () => onKeyDown('i'));
+  bindButton(getButton('mobileStartPause'), () => {
+    if (currentState === 'ready') {
       onStart();
     } else {
       onPause();
     }
-    btn.blur();
   });
-
-  getButton('mobileToggleBar').addEventListener('click', () => {
-    vibrateBrief();
+  bindButton(getButton('mobileToggleBar'), () => {
     document.body.classList.toggle('mobile-controls-expanded');
-    getButton('mobileToggleBar').blur();
   });
 
   document.body.addEventListener('click', (e) => {
@@ -335,4 +316,34 @@ export const initHandlers = ({
   });
 
   document.body.classList.add('enable-transition');
+
+  let currentState: 'running' | 'ready' | 'paused' = 'ready';
+  const setState = (state: 'running' | 'ready' | 'paused') => {
+    currentState = state;
+    getButton('startBtn').textContent =
+      state === 'ready' ? 'Begin Game' : 'Abort';
+    getButton('startBtn').classList.toggle('primary', state === 'ready');
+    getButton('pauseBtn').disabled = state === 'ready';
+    getButton('pauseBtn').classList.toggle('primary', state === 'paused');
+    getButton('pauseBtn').textContent = state === 'paused' ? 'Resume' : 'Pause';
+    getSelect('levelSelect').disabled = state !== 'ready';
+
+    const mobileStartPause = getButton('mobileStartPause');
+    mobileStartPause.textContent =
+      state === 'ready' ? 'Start' : state === 'paused' ? 'Resume' : 'Pause';
+
+    getElement('sidePanelWrapper').classList.toggle(
+      'collapsed',
+      state === 'running'
+    );
+    if (state === 'running') {
+      setTimeout(() => {
+        getElement('sidePanelWrapper').classList.add('collapsed-interactive');
+      }, 300);
+    } else {
+      getElement('sidePanelWrapper').classList.remove('collapsed-interactive');
+    }
+  };
+
+  return setState;
 };

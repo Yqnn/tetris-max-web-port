@@ -14,15 +14,21 @@
         function preventZoom(e) {
           e.preventDefault();
         }
-        document.addEventListener('gesturestart', preventZoom, { passive: false });
-        document.addEventListener('gesturechange', preventZoom, { passive: false });
-        document.addEventListener('gestureend', preventZoom, { passive: false });
+        document.addEventListener('gesturestart', preventZoom, {
+          passive: false,
+        });
+        document.addEventListener('gesturechange', preventZoom, {
+          passive: false,
+        });
+        document.addEventListener('gestureend', preventZoom, {
+          passive: false,
+        });
       })();
     </script>
     <link rel="icon" href="favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="favicon.png" />
-    <script type="module" crossorigin src="/tetris-max-web-port/assets/index-CKAKGBrA.js"></script>
-    <link rel="stylesheet" crossorigin href="/tetris-max-web-port/assets/index-Cnh4OsM9.css">
+    <script type="module" crossorigin src="/tetris-max-web-port/assets/index-DW3ff11f.js"></script>
+    <link rel="stylesheet" crossorigin href="/tetris-max-web-port/assets/index-BiKoB8sm.css">
   <link rel="manifest" href="/tetris-max-web-port/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/tetris-max-web-port/registerSW.js"></script></head>
   <body>
     <div class="main-container">
@@ -96,6 +102,7 @@
                 <option value="window">Color</option>
                 <option value="fullscreen">Color Large</option>
                 <option value="bw">Monochrome</option>
+                <option value="mobile">Mobile</option>
               </select>
             </div>
           </div>

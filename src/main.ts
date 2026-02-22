@@ -10,12 +10,12 @@ import {
   initHandlers,
   promptPlayerName,
   setDisplayModeUI,
-  setState,
 } from './ui';
 import type { Level } from './game.constants';
 import { addHighScore, isHighScore, loadHighScores } from './high-scores';
 import type { HighScore } from './high-scores';
-import { getLayout, WINDOW_LAYOUT, type DisplayMode } from './display';
+import { getLayout, type DisplayMode } from './display';
+import { initSettings } from './settings';
 
 /**
  * Tetris Max - Accurate Web Port
@@ -29,11 +29,8 @@ const SCALE = 2;
 
 async function init() {
   // State:
-  let currentPiecesStyle: PieceStyle = 'default';
-  let currentBackgroundStyle: BGStyle = 'default';
-  let currentMusicStyle: MusicStyle = 'peter_wagner';
-  let currentDisplayMode: DisplayMode = 'window';
-  let currentLevel: Level = 1;
+  const { setSetting, settings } = initSettings();
+
   let highScores: HighScore[] = []; // Array of {name, score, rows, date}
   let lastHighScoreIndex = -1; // Index of player's latest high score entry
   let isShowingHighScores = false; // Whether high scores popup is visible
@@ -44,15 +41,25 @@ async function init() {
   let lastFrameTime = 0;
 
   const game = initGame();
-  const draw = initDraw(getCanvas(), SCALE, game, WINDOW_LAYOUT);
-  const sprites = await initSprites(
-    currentBackgroundStyle,
-    currentPiecesStyle,
+  const draw = initDraw(
+    getCanvas(),
     SCALE,
-    currentDisplayMode
+    game,
+    getLayout(settings.displayMode),
+    settings.displayMode
+  );
+  const sprites = await initSprites(
+    settings.backgroundStyle,
+    settings.piecesStyle,
+    SCALE,
+    settings.displayMode
   );
   draw.setSprites(sprites);
-  const sound = await initSound(currentMusicStyle);
+  const sound = await initSound(
+    settings.musicStyle,
+    settings.isMusicOn,
+    settings.isSoundOn
+  );
 
   highScores = loadHighScores();
 
@@ -62,14 +69,15 @@ async function init() {
     sound?.stopMusic();
   };
 
-  initHandlers({
+  const setState = initHandlers({
+    initialSettings: settings,
     onStart: () => {
       if (isGameInProgress) {
         stopGame();
         return;
       }
-      game.start(currentLevel);
-      sound?.startMusic(currentMusicStyle);
+      game.start(settings.level);
+      sound?.startMusic(settings.musicStyle);
       isShowingHighScores = false;
       isShowingAbout = false;
       lastFrameTime = performance.now();
@@ -88,23 +96,34 @@ async function init() {
         setState('running');
         isShowingHighScores = false;
         isShowingAbout = false;
-        sound?.startMusic(currentMusicStyle);
+        sound?.startMusic(settings.musicStyle);
         lastFrameTime = performance.now();
       }
     },
-    onKeyUp: (key) => game.handleKeyUp(key),
-    onKeyDown: (key) => game.handleKeyDown(key),
+    onKeyUp: (key) => {
+      if (isGameInProgress && !isGamePaused) {
+        game.handleKeyUp(key);
+      }
+    },
+    onKeyDown: (key) => {
+      if (isGameInProgress && !isGamePaused) {
+        game.handleKeyDown(key);
+      }
+    },
     onClick: () => {
       isShowingHighScores = false;
       isShowingAbout = false;
     },
     onToggleMusic: () => {
-      const gMusicOn = sound?.toggleMusic(isGameInProgress && !isGamePaused);
-      return gMusicOn ?? false;
+      setSetting(
+        'isMusicOn',
+        sound?.toggleMusic(isGameInProgress && !isGamePaused) ?? false
+      );
+      return settings.isMusicOn;
     },
     onToggleSound: () => {
-      const gSoundOn = sound?.toggleSound();
-      return gSoundOn ?? false;
+      setSetting('isSoundOn', sound?.toggleSound() ?? false);
+      return settings.isSoundOn;
     },
     onShowHighScores: () => {
       if (isShowingHighScores) {
@@ -130,38 +149,39 @@ async function init() {
       }
     },
     onSelectLevel: (level: Level) => {
-      currentLevel = level;
+      setSetting('level', level);
     },
     onSelectPieces: (pieces: PieceStyle) => {
-      currentPiecesStyle = pieces;
-      sprites.setPiecesImage(currentPiecesStyle);
+      setSetting('piecesStyle', pieces);
+      sprites.setPiecesImage(settings.piecesStyle);
     },
     onSelectBackground: (background: BGStyle) => {
-      currentBackgroundStyle = background;
-      sprites.setBackgroundImages(currentBackgroundStyle);
+      setSetting('backgroundStyle', background);
+      sprites.setBackgroundImages(settings.backgroundStyle);
     },
     onSelectMusic: (music: MusicStyle) => {
-      currentMusicStyle = music;
+      setSetting('musicStyle', music);
       const wasPlaying = sound?.getIsPlaying();
       if (wasPlaying) {
         sound?.stopMusic();
       }
       if (wasPlaying && isGameInProgress && !isGamePaused) {
-        sound?.startMusic(currentMusicStyle);
+        sound?.startMusic(settings.musicStyle);
       }
     },
     onSelectDisplay: async (mode: DisplayMode) => {
-      currentDisplayMode = mode;
+      setSetting('displayMode', mode);
       // BW mode forces default pieces and background
       if (mode === 'bw') {
-        currentPiecesStyle = 'default';
-        currentBackgroundStyle = 'default';
+        setSetting('piecesStyle', 'default');
+        setSetting('backgroundStyle', 'default');
       }
       setDisplayModeUI(mode);
       draw.setDisplayMode(mode);
       draw.setLayout(getLayout(mode));
-      await sprites.setDisplayMode(mode, currentPiecesStyle);
+      await sprites.setDisplayMode(mode, settings.piecesStyle);
     },
+    initialDisplayMode: settings.displayMode,
   });
 
   const stopGame = () => {

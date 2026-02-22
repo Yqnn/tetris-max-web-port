@@ -63,7 +63,7 @@ export const isBGStyle = (style: string): style is BGStyle => {
 
 const getSpritesForMode = (mode: DisplayMode): Record<SpriteKey, string> => {
   if (mode === 'bw') return BW_SPRITES;
-  if (mode === 'fullscreen') return LG_SPRITES;
+  if (mode === 'fullscreen' || mode === 'mobile') return LG_SPRITES;
   return SPRITES;
 };
 
@@ -151,7 +151,9 @@ const initPiecesImage = async (
   // BW mode always uses the BW pieces regardless of style
   const isBw = displayMode === 'bw';
   // For default pieces in fullscreen, use native _lg sprite (22px blocks)
-  const isLgPieces = displayMode === 'fullscreen' && pieceStyle === 'default';
+  const isLgPieces =
+    (displayMode === 'fullscreen' || displayMode === 'mobile') &&
+    pieceStyle === 'default';
 
   let srcFile: string;
   let srcBlockSize: number;
@@ -203,25 +205,25 @@ export const initSprites = async (
   backgroundStyle: BGStyle,
   pieceStyle: PieceStyle,
   scale: number,
-  displayMode: DisplayMode = 'window'
+  initialDisplayMode: DisplayMode = 'window'
 ) => {
   const bgPromise =
-    displayMode === 'bw'
+    initialDisplayMode === 'bw'
       ? Promise.resolve(initBwBackgroundPattern(scale))
       : initBackgroundImages(backgroundStyle, scale);
 
   const [mainSprites, backgroundImages, piecesImages] = await Promise.all([
-    initMainSprites(displayMode),
+    initMainSprites(initialDisplayMode),
     bgPromise,
-    initPiecesImage(pieceStyle, scale, displayMode),
+    initPiecesImage(pieceStyle, scale, initialDisplayMode),
   ]);
-  let currentDisplayMode = displayMode;
+  let displayMode = initialDisplayMode;
   return {
     getMainSprite: (name: SpriteKey) => mainSprites[name],
     getBackgroundImage: (index: number) => backgroundImages[index],
     getPiecesImage: (index: number) => piecesImages[index],
     setBackgroundImages: async (backgroundStyle: BGStyle) => {
-      if (currentDisplayMode === 'bw') return;
+      if (displayMode === 'bw') return;
       backgroundImages.splice(
         0,
         backgroundImages.length,
@@ -232,11 +234,11 @@ export const initSprites = async (
       piecesImages.splice(
         0,
         piecesImages.length,
-        ...(await initPiecesImage(pieceStyle, scale, currentDisplayMode))
+        ...(await initPiecesImage(pieceStyle, scale, displayMode))
       );
     },
     setDisplayMode: async (mode: DisplayMode, pStyle: PieceStyle) => {
-      currentDisplayMode = mode;
+      displayMode = mode;
       const newBg =
         mode === 'bw'
           ? initBwBackgroundPattern(scale)

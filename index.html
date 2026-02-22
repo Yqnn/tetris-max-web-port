@@ -14,9 +14,15 @@
         function preventZoom(e) {
           e.preventDefault();
         }
-        document.addEventListener('gesturestart', preventZoom, { passive: false });
-        document.addEventListener('gesturechange', preventZoom, { passive: false });
-        document.addEventListener('gestureend', preventZoom, { passive: false });
+        document.addEventListener('gesturestart', preventZoom, {
+          passive: false,
+        });
+        document.addEventListener('gesturechange', preventZoom, {
+          passive: false,
+        });
+        document.addEventListener('gestureend', preventZoom, {
+          passive: false,
+        });
       })();
     </script>
     <link rel="icon" href="favicon.png" type="image/png" />
@@ -94,6 +100,7 @@
                 <option value="window">Color</option>
                 <option value="fullscreen">Color Large</option>
                 <option value="bw">Monochrome</option>
+                <option value="mobile">Mobile</option>
               </select>
             </div>
           </div>

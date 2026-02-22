@@ -110,7 +110,7 @@ export type InternalGameState = {
   score: {
     currentScore: number;
     linesCleared: number;
-    currentLevel: Level;
+    level: Level;
   };
 
   isGameOver: boolean;

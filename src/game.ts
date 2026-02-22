@@ -25,7 +25,7 @@ export const initGame = () => {
   const start = (level: Level) => {
     // Initialize game
     state = makeInitialGameState();
-    state.score.currentLevel = level;
+    state.score.level = level;
 
     // Spawn first piece
     state.nextPiece = copyPiece(PIECE_LIST[Math.floor(Math.random() * 7)]);
@@ -73,7 +73,7 @@ export const initGame = () => {
 
     getScore: () => state.score.currentScore,
     getLinesCleared: () => state.score.linesCleared,
-    getCurrentLevel: () => state.score.currentLevel,
+    getCurrentLevel: () => state.score.level,
 
     getCurrentPiece: () => state.currentPiece,
     getNextPiece: () => state.nextPiece,
@@ -99,7 +99,7 @@ function makeInitialGameState(): InternalGameState {
     score: {
       currentScore: 0,
       linesCleared: 0,
-      currentLevel: 1,
+      level: 1,
     },
     isGameOver: false,
     events: [],
@@ -187,7 +187,7 @@ function animateActivePiece(state: InternalGameState) {
 
   // Determine if it's time to drop
   let shouldDrop = false;
-  const levelSpeed = LEVEL_SPEED[state.score.currentLevel];
+  const levelSpeed = LEVEL_SPEED[state.score.level];
 
   if (state.movement.inFreefall) {
     // Freefall mode: drop every 2 ticks
@@ -201,10 +201,7 @@ function animateActivePiece(state: InternalGameState) {
     shouldDrop = currentTicks - state.timing.lastDropTime >= levelSpeed;
 
     // Level 10 special handling (effectively 3.5 ticks)
-    if (
-      state.score.currentLevel === 10 &&
-      state.currentPiece.height % 2 === 0
-    ) {
+    if (state.score.level === 10 && state.currentPiece.height % 2 === 0) {
       shouldDrop = currentTicks - state.timing.lastDropTime >= levelSpeed - 1;
     }
   }
@@ -485,10 +482,10 @@ function finishRowClearing(state: InternalGameState) {
 
   // Check for level up
   if (
-    state.score.linesCleared >= LEVEL_THRESHOLD[state.score.currentLevel] &&
-    state.score.currentLevel < 10
+    state.score.linesCleared >= LEVEL_THRESHOLD[state.score.level] &&
+    state.score.level < 10
   ) {
-    state.score.currentLevel++;
+    state.score.level++;
     if (!bonus && !tbonus) {
       state.events.push('newLevel');
     }

@@ -46,11 +46,31 @@ export const FULLSCREEN_LAYOUT: LayoutConfig = {
   SCORE_SPACING: 68,
 };
 
-export const DISPLAY_MODES = ['window', 'fullscreen', 'bw'] as const;
+export const MOBILE_LAYOUT: LayoutConfig = {
+  WINDOW_WIDTH: 445,
+  WINDOW_HEIGHT: 462,
+  BLOCK_SIZE: 22,
+  BOARD_X: 50,
+  BOARD_Y: 10,
+  NEXT_X: 297,
+  NEXT_Y: 10,
+  NEXT_SIZE: 98,
+  SCORE_X: 297,
+  SCORE_Y: 133,
+  SCORE_WIDTH: 96,
+  SCORE_HEIGHT: 60,
+  SCORE_SPACING: 25,
+};
+
+export const DISPLAY_MODES = ['window', 'fullscreen', 'bw', 'mobile'] as const;
 export type DisplayMode = (typeof DISPLAY_MODES)[number];
 
 export const getLayout = (mode: DisplayMode): LayoutConfig =>
-  mode === 'fullscreen' ? FULLSCREEN_LAYOUT : WINDOW_LAYOUT;
+  mode === 'fullscreen'
+    ? FULLSCREEN_LAYOUT
+    : mode === 'mobile'
+      ? MOBILE_LAYOUT
+      : WINDOW_LAYOUT;
 
 export const isDisplayMode = (value: string): value is DisplayMode =>
   DISPLAY_MODES.includes(value as DisplayMode);

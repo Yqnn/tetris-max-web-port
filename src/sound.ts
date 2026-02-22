@@ -53,7 +53,9 @@ const SOUND_FILES = {
 export type Sound = keyof typeof SOUND_FILES;
 
 export const initSound = async (
-  style?: MusicStyle
+  style: MusicStyle,
+  isMusicOn: boolean,
+  isSoundOn: boolean
 ): Promise<{
   playSound: (name: Sound) => void;
   startMusic: (style?: MusicStyle) => Promise<void>;
@@ -77,8 +79,8 @@ export const initSound = async (
     let lastMusicSegment = 0;
     let musicSource: AudioBufferSourceNode | null = null;
     let musicGainNode: GainNode | null = null;
-    let gMusicOn = true;
-    let gSoundOn = true;
+    let gMusicOn = isMusicOn;
+    let gSoundOn = isSoundOn;
     let isPlaying = false;
 
     // Load music segments for a given style
