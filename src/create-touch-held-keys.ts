@@ -51,19 +51,6 @@ export function createTouchHeldKeys() {
     }
   };
 
-  const endTouch = (touchId: number) => {
-    const prev = touchTargets.get(touchId);
-    if (!prev) return;
-    const n = (refCount.get(prev.btn) ?? 0) - 1;
-    if (n <= 0) {
-      refCount.delete(prev.btn);
-      leave(prev.btn, prev.key.keyUp);
-    } else {
-      refCount.set(prev.btn, n);
-    }
-    touchTargets.delete(touchId);
-  };
-
   document.addEventListener(
     'touchstart',
     (e) => {
@@ -76,7 +63,7 @@ export function createTouchHeldKeys() {
   document.addEventListener(
     'touchmove',
     (e) => {
-      for (const t of e.touches) {
+      for (const t of e.changedTouches) {
         const hit = getAt(t.clientX, t.clientY);
         setTargetForTouch(t.identifier, hit);
       }
@@ -84,28 +71,25 @@ export function createTouchHeldKeys() {
     { passive: true }
   );
   const end = (e: TouchEvent) => {
-    for (const t of e.changedTouches) endTouch(t.identifier);
+    for (const t of e.changedTouches) setTargetForTouch(t.identifier, null);
   };
   document.addEventListener('touchend', end);
   document.addEventListener('touchcancel', end);
 
   return (btn: HTMLButtonElement, key: Handlers) => {
     registry.set(btn, key);
-    btn.addEventListener('pointerenter', (e) => {
+    btn.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch') {
         return;
       }
       e.preventDefault();
       enter(btn, key.keyDown);
     });
-    btn.addEventListener('pointerout', (e) => {
+    btn.addEventListener('pointerup', (e) => {
       if (e.pointerType === 'touch') {
         return;
       }
       leave(btn, key.keyUp);
-      if (e && typeof btn.releasePointerCapture === 'function') {
-        btn.releasePointerCapture(e.pointerId);
-      }
     });
   };
 }
