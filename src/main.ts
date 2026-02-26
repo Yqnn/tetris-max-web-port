@@ -41,6 +41,21 @@ async function init() {
   let lastFrameTime = 0;
 
   const game = initGame();
+
+  const saveGameState = () => {
+    if (isGameInProgress) {
+      game.saveState();
+    }
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      saveGameState();
+    }
+  });
+  document.addEventListener('beforeunload', () => {
+    saveGameState();
+  });
+
   const draw = initDraw(
     getCanvas(),
     SCALE,
@@ -228,6 +243,12 @@ async function init() {
     });
     requestAnimationFrame(mainLoop);
   };
+
+  if (game.getCurrentPiece() !== null) {
+    isShowingWelcomeScreen = false;
+    isGameInProgress = true;
+    pauseGame();
+  }
 
   // Start main loop
   requestAnimationFrame(mainLoop);

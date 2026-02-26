@@ -65,9 +65,21 @@ export const initGame = () => {
     }
   };
 
+  const saveState = () => {
+    const dataToSave = {
+      score: state.score,
+      board: state.board,
+      currentPiece: state.currentPiece,
+      nextPiece: state.nextPiece,
+      pendingDropScore: state.pendingDropScore,
+    };
+    localStorage.setItem('tetrisMaxGameState', JSON.stringify(dataToSave));
+  };
+
   return {
     start,
     tick,
+    saveState,
     handleKeyDown: (key: string) => handleKeyDown(state, key),
     handleKeyUp: (key: string) => handleKeyUp(state, key),
 
@@ -95,6 +107,9 @@ function makeInitialGameState(): InternalGameState {
       board[i][j] = 0;
     }
   }
+  const savedState = localStorage.getItem('tetrisMaxGameState');
+  localStorage.removeItem('tetrisMaxGameState');
+
   return {
     score: {
       currentScore: 0,
@@ -134,6 +149,7 @@ function makeInitialGameState(): InternalGameState {
       accumulator: 0,
       count: 0,
     },
+    ...(savedState ? JSON.parse(savedState) : {}),
   };
 }
 
