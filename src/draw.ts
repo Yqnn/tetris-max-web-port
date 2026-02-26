@@ -386,10 +386,18 @@ export const initDraw = (
     const PADDING = 3;
     const BORDER_WIDTH = 3;
 
-    const drawW = IMG_WIDTH * scale;
-    const drawH = IMG_HEIGHT * scale;
-    const POPUP_WIDTH = drawW + PADDING * 2 * scale + BORDER_WIDTH * 2 * scale;
-    const POPUP_HEIGHT = drawH + PADDING * 2 * scale + BORDER_WIDTH * 2 * scale;
+    let drawW = IMG_WIDTH * scale;
+    let drawH = IMG_HEIGHT * scale;
+    let POPUP_WIDTH = drawW + PADDING * 2 * scale + BORDER_WIDTH * 2 * scale;
+    let POPUP_HEIGHT = drawH + PADDING * 2 * scale + BORDER_WIDTH * 2 * scale;
+
+    if (POPUP_WIDTH > canvas.width) {
+      POPUP_WIDTH = canvas.width;
+      POPUP_HEIGHT = (POPUP_WIDTH * IMG_HEIGHT) / IMG_WIDTH;
+      drawW = POPUP_WIDTH - PADDING * 2 * scale - BORDER_WIDTH * 2 * scale;
+      drawH = POPUP_HEIGHT - PADDING * 2 * scale - BORDER_WIDTH * 2 * scale;
+    }
+
     const POPUP_X =
       scale * Math.floor((canvas.width - POPUP_WIDTH) / 2 / scale);
     const POPUP_Y =
@@ -420,8 +428,14 @@ export const initDraw = (
   }: DrawWindowParams) {
     if (!isShowingHighScores) return;
 
-    const POPUP_WIDTH = 452 * scale;
-    const POPUP_HEIGHT = 308 * scale;
+    let POPUP_WIDTH = 452 * scale;
+    let POPUP_HEIGHT = 308 * scale;
+
+    if (POPUP_WIDTH > canvas.width) {
+      POPUP_WIDTH = canvas.width;
+      POPUP_HEIGHT = (POPUP_WIDTH * 308) / 452;
+    }
+
     const POPUP_X = (canvas.width - POPUP_WIDTH) / 2;
     const POPUP_Y = (canvas.height - POPUP_HEIGHT) / 2;
 

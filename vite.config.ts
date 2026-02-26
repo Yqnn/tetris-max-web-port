@@ -13,19 +13,19 @@ export default defineConfig({
         name: 'Tetris Max',
         short_name: 'Tetris Max',
         description: 'Tetris Max - Classic Mac-style Tetris',
-        display: 'standalone',
-        orientation: 'any',
+        display: 'fullscreen',
+        orientation: 'portrait',
         background_color: '#000000',
         theme_color: '#000000',
         icons: [
           {
-            src: 'favicon.png',
+            src: 'pwa.png',
             sizes: 'any',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: 'favicon.png',
+            src: 'pwa.png',
             sizes: 'any',
             type: 'image/png',
             purpose: 'maskable',
@@ -33,7 +33,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,png,ico,webmanifest,wav}'],
         navigateFallback: null,
         cleanupOutdatedCaches: true,
       },
