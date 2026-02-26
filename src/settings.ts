@@ -14,6 +14,12 @@ export type Settings = {
   isMusicOn: boolean;
   isSoundOn: boolean;
 };
+
+const isMobile =
+  /Android|Mobi|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+
 export const initSettings = () => {
   const rawSettings = localStorage.getItem(LOCAL_STORAGE_KEY);
   let parsedSettings: Partial<Settings> = {};
@@ -26,7 +32,7 @@ export const initSettings = () => {
     piecesStyle: 'default',
     backgroundStyle: 'default',
     musicStyle: 'peter_wagner',
-    displayMode: 'window',
+    displayMode: isMobile ? 'mobile' : 'window',
     level: 1,
     isMusicOn: true,
     isSoundOn: true,
