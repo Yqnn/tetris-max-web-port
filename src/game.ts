@@ -20,7 +20,7 @@ import {
 } from './game.constants';
 
 export const initGame = () => {
-  let state = makeInitialGameState();
+  let state = makeInitialGameState(true);
 
   const start = (level: Level) => {
     // Initialize game
@@ -98,7 +98,7 @@ export const initGame = () => {
   };
 };
 
-function makeInitialGameState(): InternalGameState {
+function makeInitialGameState(restoreSavedState = false): InternalGameState {
   // Initialize board (column-major like original)
   const board: number[][] = [];
   for (let i = 0; i < BOARD_COLS; i++) {
@@ -107,7 +107,10 @@ function makeInitialGameState(): InternalGameState {
       board[i][j] = 0;
     }
   }
-  const savedState = localStorage.getItem('tetrisMaxGameState');
+
+  const savedState = restoreSavedState
+    ? localStorage.getItem('tetrisMaxGameState')
+    : null;
   localStorage.removeItem('tetrisMaxGameState');
 
   return {

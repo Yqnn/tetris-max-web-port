@@ -45,6 +45,7 @@ async function init() {
   const saveGameState = () => {
     if (isGameInProgress) {
       game.saveState();
+      pauseGame();
     }
   };
   document.addEventListener('visibilitychange', () => {
@@ -205,16 +206,16 @@ async function init() {
     setState('ready');
     sound?.stopMusic();
     if (isHighScore(highScores, game.getScore())) {
+      promptPlayerName((playerName) => {
+        lastHighScoreIndex = addHighScore(highScores, {
+          name: playerName,
+          score: game.getScore(),
+          rows: game.getLinesCleared(),
+        });
+        isShowingHighScores = true;
+      });
       setTimeout(() => {
         sound?.playSound('highscore');
-        promptPlayerName((playerName) => {
-          lastHighScoreIndex = addHighScore(highScores, {
-            name: playerName,
-            score: game.getScore(),
-            rows: game.getLinesCleared(),
-          });
-          isShowingHighScores = true;
-        });
       }, 1000);
     }
   };

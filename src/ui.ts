@@ -39,6 +39,7 @@ function getButton(
     | 'mobileRotateCw'
     | 'mobileStartPause'
     | 'mobileToggleBar'
+    | 'deadArea'
 ): HTMLButtonElement {
   return document.getElementById(id) as HTMLButtonElement;
 }
@@ -65,7 +66,7 @@ export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
   const highScoreModalOverlay = getElement('highScoreModalOverlay');
   highScoreModalOverlay.removeAttribute('hidden');
   const input = getInput('highScoreNameInput');
-  input.value = 'Player';
+  input.value = localStorage.getItem('tetrisMaxPlayerName') ?? 'Player';
   input.focus();
   input.select();
   getButton('startBtn').disabled = true;
@@ -75,6 +76,7 @@ export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
       input.value && input.value.trim()
         ? input.value.trim().substring(0, 20)
         : 'Anonymous';
+    localStorage.setItem('tetrisMaxPlayerName', playerName);
     onSubmit(playerName);
 
     highScoreModalOverlay.setAttribute('hidden', '');
@@ -276,7 +278,7 @@ export const initHandlers = ({
     }
   });
 
-  const bindHeldKey = createTouchHeldKeys();
+  const bindHeldKey = createTouchHeldKeys({ deadArea: getButton('deadArea') });
   const makeKeyHandlers = (key: string) => ({
     keyDown: () => {
       onKeyDown(key);
@@ -292,7 +294,7 @@ export const initHandlers = ({
   const bindButton = (
     btn: HTMLButtonElement,
     handler: (btn: HTMLButtonElement) => void
-  ) => bindHeldKey(btn, { keyDown: () => handler(btn) });
+  ) => bindHeldKey(btn, { keyUp: () => handler(btn) });
   bindButton(getButton('mobileRotateCw'), () => onKeyDown('k'));
   bindButton(getButton('mobileRotateCcw'), () => onKeyDown('i'));
   bindButton(getButton('mobileStartPause'), () => {
@@ -303,17 +305,28 @@ export const initHandlers = ({
     }
   });
   bindButton(getButton('mobileToggleBar'), () => {
+    if (
+      currentState === 'running' &&
+      !document.body.classList.contains('mobile-controls-expanded')
+    ) {
+      onPause();
+    }
     document.body.classList.toggle('mobile-controls-expanded');
   });
 
-  document.body.addEventListener('click', (e) => {
-    if (
-      (!(e.target instanceof Element) || !e.target.closest('.side-panel')) &&
-      !(e.target instanceof HTMLButtonElement)
-    ) {
-      document.body.classList.remove('mobile-controls-expanded');
-    }
-  });
+  document.addEventListener(
+    'touchstart',
+    (e) => {
+      if (
+        (!(e.target instanceof Element) || !e.target.closest('.side-panel')) &&
+        (!(e.target instanceof HTMLButtonElement) ||
+          e.target.id !== 'mobileToggleBar')
+      ) {
+        document.body.classList.remove('mobile-controls-expanded');
+      }
+    },
+    { capture: true }
+  );
 
   document.body.classList.add('enable-transition');
   getElement('mobileControls').addEventListener('touchstart', (e) =>

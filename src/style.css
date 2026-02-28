@@ -41,7 +41,6 @@ body {
 }
 
 
-
 .main-container {
   display: flex;
   flex-direction: row;
@@ -95,6 +94,12 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   image-rendering: crisp-edges;
   max-width: 100%;
   max-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  #gameCanvas {
+    max-height: calc(100vh - 300px);
+  }
 }
 
 .side-panel-wrapper {
@@ -490,18 +495,19 @@ body.bw .highscore-modal-tetromino {
     left: 0;
     right: 0;
     height: 300px;
-    background-color: #CCCCCC;
+    border-image:
+      url('/ui/border-top.svg')
+      95.4545% 48.7806% 4.5454% 48.7805%
+      / 42px 40px 2px 40px / 42px 0 0 0;
+    background: radial-gradient(ellipse farthest-side at 80% 100%, #666666, #444444);
   }
 
-  .mobile-controls:before {
-    content: '';
+  .mobile-controls-inner {
     position: absolute;
-    top: 0;
+    bottom: max( 20px,  env(safe-area-inset-bottom));
     left: 0;
     right: 0;
-    height: 20px;
-    border-radius:  0 0 20px 20px;
-    background-color: black;
+    top: 0;
   }
 
   .mobile-btn {
@@ -530,30 +536,40 @@ body.bw .highscore-modal-tetromino {
     box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.5);
   }
 
+  #deadArea {
+    height: env(safe-area-inset-bottom);
+    width: 200px;
+    margin: auto;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    position:absolute;
+  }
+
   #mobileLeft {
     background-image: url('/sprites/arrow_left.png');
     left: 10px;
-    bottom: 160px;
+    bottom: 110px;
   }
   #mobileRight {
     background-image: url('/sprites/arrow_right.png');
     left: 110px;
-    bottom: 160px;
+    bottom: 110px;
   }
   #mobileSoftDrop {
     background-image: url('/sprites/arrow_down.png');
     left: 60px;
-    bottom: 110px;
+    bottom: 60px;
   }
   #mobileHardDrop {
     background-image: url('/sprites/arrow_down_dashed.png');
     left: 60px;
-    bottom: 210px;
+    bottom: 160px;
   }
   #mobileRotateCcw {
     background-image: url('/sprites/turn_counterclockwise.png');
     right: 20px;
-    bottom: 185px;
+    bottom: 135px;
     width: 70px;
     height: 70px;
     border-radius: 35px;
@@ -561,7 +577,7 @@ body.bw .highscore-modal-tetromino {
   #mobileRotateCw {
     background-image: url('/sprites/turn_clockwise.png');
     right: 100px;
-    bottom: 115px;
+    bottom: 65px;
     width: 70px;
     height: 70px;
     border-radius: 35px;
@@ -569,12 +585,15 @@ body.bw .highscore-modal-tetromino {
   #mobileStartPause {
     left: calc(50% + 40px);
     transform: translateX(-50%);
-    bottom: 50px;
+    bottom: 0;
   }
   #mobileToggleBar {
     left: calc(50% - 40px);
     transform: translateX(-50%);
-    bottom: 50px;
+    bottom: 0;
   }
 
+  #pauseBtn {
+    display: none;
+  }
 }

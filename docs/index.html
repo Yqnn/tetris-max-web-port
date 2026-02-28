@@ -28,8 +28,8 @@
     </script>
     <link rel="icon" href="favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="favicon.png" />
-    <script type="module" crossorigin src="/tetris-max-web-port/assets/index-BYNm6WI6.js"></script>
-    <link rel="stylesheet" crossorigin href="/tetris-max-web-port/assets/index-CUmv_Msu.css">
+    <script type="module" crossorigin src="/tetris-max-web-port/assets/index-BOCUBqdz.js"></script>
+    <link rel="stylesheet" crossorigin href="/tetris-max-web-port/assets/index-DZoUzls0.css">
   <link rel="manifest" href="/tetris-max-web-port/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/tetris-max-web-port/registerSW.js"></script></head>
   <body>
     <div class="main-container">
@@ -39,50 +39,53 @@
     </div>
 
     <div class="mobile-controls" id="mobileControls">
-      <button
-        id="mobileLeft"
-        class="mobile-btn"
-        aria-label="Move left"
-      ></button>
-      <button
-        id="mobileRight"
-        class="mobile-btn"
-        aria-label="Move right"
-      ></button>
-      <button
-        id="mobileSoftDrop"
-        class="mobile-btn"
-        aria-label="Slow drop"
-      ></button>
-      <button
-        id="mobileHardDrop"
-        class="mobile-btn"
-        aria-label="Fast drop"
-      ></button>
-      <button
-        id="mobileRotateCcw"
-        class="mobile-btn"
-        aria-label="Rotate counterclockwise"
-      ></button>
-      <button
-        id="mobileRotateCw"
-        class="mobile-btn"
-        aria-label="Rotate clockwise"
-      ></button>
-      <button
-        type="button"
-        id="mobileStartPause"
-        class="mobile-btn mobile-btn-text"
-      >
-        Start
-      </button>
-      <button
-        type="button"
-        id="mobileToggleBar"
-        class="mobile-btn mobile-btn-text"
-      >
-        Menu
-      </button>
+      <div class="mobile-controls-inner">
+        <button
+          id="mobileLeft"
+          class="mobile-btn"
+          aria-label="Move left"
+        ></button>
+        <button
+          id="mobileRight"
+          class="mobile-btn"
+          aria-label="Move right"
+        ></button>
+        <button
+          id="mobileSoftDrop"
+          class="mobile-btn"
+          aria-label="Slow drop"
+        ></button>
+        <button
+          id="mobileHardDrop"
+          class="mobile-btn"
+          aria-label="Fast drop"
+        ></button>
+        <button
+          id="mobileRotateCcw"
+          class="mobile-btn"
+          aria-label="Rotate counterclockwise"
+        ></button>
+        <button
+          id="mobileRotateCw"
+          class="mobile-btn"
+          aria-label="Rotate clockwise"
+        ></button>
+        <button
+          type="button"
+          id="mobileStartPause"
+          class="mobile-btn mobile-btn-text"
+        >
+          Start
+        </button>
+        <button
+          type="button"
+          id="mobileToggleBar"
+          class="mobile-btn mobile-btn-text"
+        >
+          Menu
+        </button>
+      </div>
+      <div id="deadArea"></div>
     </div>
 
     <div class="side-panel-wrapper" id="sidePanelWrapper">
