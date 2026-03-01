@@ -84,13 +84,9 @@ export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
 
     highScoreModalOk.removeEventListener('click', submitHighScoreName);
     input.removeEventListener('keydown', handleKeyDown);
-    highScoreModalOverlay.removeEventListener('click', handleClick);
   };
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') submitHighScoreName();
-  };
-  const handleClick = (e: MouseEvent) => {
-    if (e.target === highScoreModalOverlay) {
+    if (e.key === 'Enter') {
       submitHighScoreName();
     }
   };
@@ -99,7 +95,6 @@ export const promptPlayerName = (onSubmit: (playerName: string) => void) => {
   const highScoreModalOk = getButton('highScoreModalOk');
   highScoreModalOk.addEventListener('click', submitHighScoreName);
   input.addEventListener('keydown', handleKeyDown);
-  highScoreModalOverlay.addEventListener('click', handleClick);
 };
 
 export const setDisplayModeUI = (mode: DisplayMode) => {
@@ -278,7 +273,8 @@ export const initHandlers = ({
     }
   });
 
-  const bindHeldKey = createTouchHeldKeys({ deadArea: getButton('deadArea') });
+  const bindHeldKey = createTouchHeldKeys();
+  bindHeldKey(getButton('deadArea'), { isDisabled: true });
   const makeKeyHandlers = (key: string) => ({
     keyDown: () => {
       onKeyDown(key);

@@ -497,7 +497,7 @@ body.bw .highscore-modal-tetromino {
     height: 300px;
     border-image:
       url('/ui/border-top.svg')
-      95.4545% 48.7806% 4.5454% 48.7805%
+      84% 40% 4% 40%
       / 42px 40px 2px 40px / 42px 0 0 0;
     background: radial-gradient(ellipse farthest-side at 80% 100%, #666666, #444444);
   }
@@ -538,11 +538,9 @@ body.bw .highscore-modal-tetromino {
 
   #deadArea {
     height: env(safe-area-inset-bottom);
-    width: 200px;
-    margin: auto;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
     position:absolute;
   }
 
