@@ -75,7 +75,7 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   .controls-help {
     display: none;
   }
-  .controls-row:nth-last-child(-n + 2) {
+  .controls-row:nth-last-child(-n + 3) {
     border-bottom: none !important;
   }
 }
@@ -218,7 +218,7 @@ body:has(.side-panel-wrapper.collapsed:not(:hover)) .main-container {
   flex-direction: column;
   gap: 8px;
 }
-.controls-row:not(:last-child) {
+.controls-row:not(:nth-last-child(-n + 2)) {
   border-bottom: 1px solid #999999;
   padding-bottom: 12px;
 }
@@ -594,4 +594,38 @@ body.bw .highscore-modal-tetromino {
   #pauseBtn {
     display: none;
   }
+}
+
+.footer {
+  position: absolute;
+  left:1px;
+  right:0;
+  height:24px;
+  bottom:0px;
+  background-color: #DDDDDD;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+.footer  a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  color:#000000;
+  fill:#000000;
+
+}
+.footer  a:hover {
+  color: #444444;
+  fill:#444444;
+}
+.footer  a:hover .sponsor {
+  transform: scale(1.1);
+}
+.footer  a svg {
+  width:16px;
+  height: 16px;
+  margin:4px 6px 4px 0;
 }
