@@ -36,5 +36,7 @@ derivative work and is licensed under the same AGPL terms.
 <table>
 <tr><td>
 <a href="https://yqnn.github.io/tetris-max-web-port/"><img src="https://raw.githubusercontent.com/Yqnn/tetris-max-web-port/refs/heads/main/public/favicon.png" /></a>
-</td><td><a href="https://yqnn.github.io/jewelbox-web-port/"><img src="https://raw.githubusercontent.com/Yqnn/jewelbox-web-port/refs/heads/main/public/favicon.png" /></a></td></tr>
+</td><td><a href="https://yqnn.github.io/jewelbox-web-port/"><img src="https://raw.githubusercontent.com/Yqnn/jewelbox-web-port/refs/heads/main/public/favicon.png" /></a></td><td>
+<a href="https://yqnn.github.io/mozpong-web-port/"><img src="https://raw.githubusercontent.com/Yqnn/mozpong-web-port/refs/heads/main/public/favicon.png" /></a>
+</td></tr>
 </table>
